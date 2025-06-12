@@ -16,5 +16,8 @@ python-jose[cryptography]
 # .env ファイルを読み込むため
 python-dotenv
 
+# Form data parsing for OAuth2PasswordRequestForm
+python-multipart
+
 pytest
 requests

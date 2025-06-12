@@ -23,7 +23,7 @@ class Post(PostBase):
 
     # SQLAlchemyモデルからPydanticモデルへ変換するために必要なおまじない
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 # --- User Schemas ---
@@ -42,7 +42,7 @@ class User(UserBase):
     id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 # --- Token Schemas ---
