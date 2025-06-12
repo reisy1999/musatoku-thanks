@@ -99,7 +99,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     access_token = auth.create_access_token(data={"sub": user.employee_id})
     return {"access_token": access_token, "token_type": "bearer"}
 
-@app.get("/users/me/", response_model=schemas.User)
+@app.get("/users/me", response_model=schemas.User)
 async def read_users_me(current_user: schemas.User = Depends(get_current_user)):
     """現在ログインしているユーザーの情報を取得するエンドポイント"""
     return current_user
