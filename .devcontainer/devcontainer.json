@@ -1,0 +1,9 @@
+{
+  "name": "musatoku-thanks-dev",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+  "settings": {},
+  "extensions": ["ms-python.python", "dbaeumer.vscode-eslint"]
+}
