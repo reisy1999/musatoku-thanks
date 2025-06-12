@@ -1,0 +1,4 @@
+/* この3行を記述することで、Tailwind CSSの全てのスタイルが有効になります */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

@@ -1,0 +1,20 @@
+# Webフレームワーク
+fastapi
+
+# FastAPIを動かすためのサーバー
+uvicorn[standard]
+
+# データベース操作のためのライブラリ (ORM)
+sqlalchemy
+
+# パスワードのハッシュ化（安全な保存）のため
+passlib[bcrypt]
+
+# JWT（アクセストークン）の生成・検証のため
+python-jose[cryptography]
+
+# .env ファイルを読み込むため
+python-dotenv
+
+pytest
+requests

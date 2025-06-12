@@ -1,0 +1,37 @@
+import os
+from datetime import datetime, timedelta
+from typing import Optional
+
+from jose import JWTError, jwt
+from passlib.context import CryptContext
+
+# .envファイルから設定を読み込みます
+SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM = os.getenv("ALGORITHM")
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
+
+# パスワードのハッシュ化に関する設定
+# bcryptという強力なアルゴリズムを使用します
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """入力されたパスワードが、ハッシュ化されたパスワードと一致するか検証します"""
+    return pwd_context.verify(plain_password, hashed_password)
+
+def get_password_hash(password: str) -> str:
+    """パスワードをハッシュ化して返します"""
+    return pwd_context.hash(password)
+
+def create_access_token(data: dict) -> str:
+    """
+    アクセストークンを生成します。
+    ペイロード(data)に有効期限(exp)を追加してJWTを作成します。
+    """
+    to_encode = data.copy()
+    
+    # ★★★計画書通り、トークンの有効期限を30分に設定★★★
+    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({"exp": expire})
+    
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
