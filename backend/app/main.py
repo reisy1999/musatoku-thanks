@@ -1,3 +1,4 @@
+import logging
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
@@ -7,6 +8,13 @@ from jose import JWTError, jwt # JWTError, jwtをインポート
 # これまでに作成した各モジュールをインポート
 from . import crud, models, schemas, auth
 from .database import SessionLocal, engine, Base
+
+# Configure basic logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
+logger = logging.getLogger(__name__)
 
 # データベースのテーブルを起動時に作成（もし存在しなければ）
 Base.metadata.create_all(bind=engine)
@@ -40,7 +48,7 @@ def on_startup():
             password="pass"
         )
         crud.create_user(db=db, user=user_in)
-        print("INFO:     初期テストユーザー(ID:000000)を作成しました。")
+        logger.info("初期テストユーザー(ID:000000)を作成しました。")
     db.close()
 
 # --- 依存関係 ---
@@ -106,5 +114,5 @@ def read_posts(db: Session = Depends(get_db)):
 def create_post_for_user(post: schemas.PostCreate, db: Session = Depends(get_db), current_user: schemas.User = Depends(get_current_user)):
     """ログイン中のユーザーとして新しい投稿を作成するエンドポイント"""
     # ここでログ出力を実装すれば、誰がいつ投稿したかのログが取れます
-    print(f"INFO:     User '{current_user.employee_id}' is creating a post.")
+    logger.info("User '%s' is creating a post.", current_user.employee_id)
     return crud.create_post(db=db, post=post, user_id=current_user.id)
