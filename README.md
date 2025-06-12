@@ -45,3 +45,13 @@ Password: pass
 }
 解説:
 この設定により、VSCodeのDev Container機能を使った際に、PythonやTailwind CSS、Dockerの便利な拡張機能が自動でインストールされるようになります。
+
+## Python依存関係
+
+バックエンドでは `httpx` を Starlette との互換性を保つため `0.27` 未満に固定しています。
+ローカルでテストを実行する際は以下のコマンドでインストールしてください。
+
+```bash
+cd backend
+pip install -r requirements.txt
+```
