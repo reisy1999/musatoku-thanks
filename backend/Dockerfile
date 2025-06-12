@@ -10,9 +10,9 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # アプリケーションのコード全体をコピーします
-COPY ./app /app
+COPY ./app /app/app
 
 # コンテナが起動したときに実行されるコマンド
 # uvicornサーバーを起動し、どのIPからのアクセスも受け付けるようにします
 # --reloadフラグで、コードが変更されたら自動でサーバーを再起動してくれます
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
