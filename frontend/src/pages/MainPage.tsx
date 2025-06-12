@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import UserInfo from '../components/ui/UserInfo';
-import Timeline from '../components/Timeline';
-import CreatePostModal from '../components/CreatePostModal';
+import Timeline from '../components/ui/Timeline';
+import CreatePostModal from '../components/ui/CreatePostModal';
 
 // 親コンポーネント(App.tsx)から受け取る関数の型を定義
 type MainPageProps = {
