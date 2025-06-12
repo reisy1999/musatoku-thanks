@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import apiClient from '../services/api';
+import apiClient from '../../services/api';
 
 // 親コンポーネントから受け取るPropsの型を定義
 type CreatePostModalProps = {
