@@ -18,9 +18,30 @@ Password: pass
 <!-- end list -->
 
 
-**簡単な解説:**
-* `#` は見出しを意味します。
-* このファイルがあるだけで、GitHubなどでプロジェクトを表示したときにトップページがとてもリッチになります。
-* 起動コマンドやURLをメモしておくことで、数ヶ月後にプロジェクトに戻ってきても、迷わず開発を再開できます。
-
 ---
+
+### 4. `devcontainer.json` の設定
+
+計画書(No. 39)の項目5に基づき、VSCodeでの開発体験を向上させるための設定を記述します。
+
+**【ファイル】: `.devcontainer/devcontainer.json` (完成版)**
+```json
+{
+	"name": "Musatoku Thanks",
+	"dockerComposeFile": "../docker-compose.yml",
+	"service": "backend",
+	"workspaceFolder": "/app",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-python.python",
+				"ms-python.vscode-pylance",
+				"esbenp.prettier-vscode",
+				"bradlc.vscode-tailwindcss",
+				"ms-azuretools.vscode-docker"
+			]
+		}
+	}
+}
+解説:
+この設定により、VSCodeのDev Container機能を使った際に、PythonやTailwind CSS、Dockerの便利な拡張機能が自動でインストールされるようになります。

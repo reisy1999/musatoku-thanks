@@ -6,17 +6,19 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./backend/app:/app # backend/app フォルダをコンテナの /app に同期します
+      - ./backend/app:/app
     env_file:
       - ./backend/.env
 
   frontend:
     build: ./frontend
     ports:
+      # 5173ポートは、Vite開発サーバーのデフォルトポートです。
+      # 一方、frontend/Dockerfileは本番環境用にnginx(ポート80)を想定しています。
+      # このdocker-compose.ymlは「開発環境用」と割り切り、このままの設定とします。
       - "5173:5173"
     volumes:
       - ./frontend:/app
-      # Mac/Windowsでnode_modulesの同期による問題を避けるためのおまじない
       - /app/node_modules
     stdin_open: true
     tty: true

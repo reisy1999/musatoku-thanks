@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import UserInfo from '../components/UserInfo';
+import UserInfo from '../components/ui/UserInfo';
 import Timeline from '../components/Timeline';
 import CreatePostModal from '../components/CreatePostModal';
 
