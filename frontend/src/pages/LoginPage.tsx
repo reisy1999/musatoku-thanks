@@ -39,7 +39,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
     <div className="flex items-center justify-center min-h-screen">
       <div className="p-8 bg-white rounded-lg shadow-md w-full max-w-sm">
         <h1 className="text-2xl font-bold mb-6 text-center text-gray-700">
-          むさとくサンクス
+          Musatoku Thanks Share
         </h1>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
@@ -47,7 +47,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
               htmlFor="employeeId"
               className="block text-sm font-medium text-gray-600 mb-1"
             >
-              社員ID
+              職員ID
             </label>
             <input
               type="text"
@@ -79,7 +79,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
             type="submit"
             className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition-colors"
           >
-            ログイン
+            Login
           </button>
         </form>
       </div>

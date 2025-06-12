@@ -53,7 +53,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
         onClick={(e) => e.stopPropagation()} // モーダル内のクリックは伝播させない
       >
         <div className="flex justify-between items-center border-b pb-3 mb-4">
-          <h2 className="text-xl font-bold">感謝を投稿する</h2>
+          <h2 className="text-xl font-bold">投稿する</h2>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-800">&times;</button>
         </div>
         
@@ -62,7 +62,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
             value={content}
             onChange={handleContentChange}
             className="w-full h-32 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="感謝のメッセージを伝えよう"
+            placeholder="Share Thanks"
             autoFocus
           />
           <div className="flex justify-between items-center mt-2">

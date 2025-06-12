@@ -1,0 +1,21 @@
+services:
+  backend:
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/app:/app/app
+
+  frontend:
+    build:
+      context: ./frontend
+      target: builder # 開発時は、Dockerfileの'builder'ステージまでを実行します
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    # DockerfileのCMDを上書きし、Viteの開発サーバーを起動します
+    command: npm run dev
+    # 開発サーバーを対話的に維持するためのおまじない
+    stdin_open: true
+    tty: true

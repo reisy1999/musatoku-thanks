@@ -28,13 +28,13 @@ const MainPage: React.FC<MainPageProps> = ({ onLogout }) => {
         {/* --- 左カラム (ユーザー情報 & メニュー) --- */}
         <header className="col-span-3 py-6">
           <div className="sticky top-6">
-            <h1 className="text-2xl font-bold text-blue-600 mb-6">むさとくサンクス</h1>
+            <h1 className="text-2xl font-bold text-blue-600 mb-6">Thanks Share</h1>
             <UserInfo />
             <button
               onClick={onLogout}
               className="mt-6 w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-200 rounded-md"
             >
-              ログアウト
+              Logout
             </button>
           </div>
         </header>
