@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
-from datetime import datetime
+from datetime import datetime, timezone
 
 # No.7で作成したdatabase.pyから、全てのモデルが継承するBaseクラスをインポートします
 from .database import Base
@@ -24,7 +24,10 @@ class Post(Base):
     # カラム（列）の定義
     id = Column(Integer, primary_key=True, index=True)
     content = Column(String(140), index=True) # 140文字制限を意識
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+    )
     
     # 外部キー制約: usersテーブルのidと紐付けます
     author_id = Column(Integer, ForeignKey("users.id"))

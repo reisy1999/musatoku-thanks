@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from datetime import timezone
 from . import models, schemas, auth
 
 # --- User CRUD ---
@@ -27,7 +28,17 @@ def get_posts(db: Session, skip: int = 0, limit: int = 100):
     投稿を新しい順に複数件取得します。
     ★★★計画書通り、投稿が0件でもエラーにならず、空のリストを返します★★★
     """
-    return db.query(models.Post).order_by(models.Post.created_at.desc()).offset(skip).limit(limit).all()
+    posts = (
+        db.query(models.Post)
+        .order_by(models.Post.created_at.desc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+    for post in posts:
+        if post.created_at and post.created_at.tzinfo is None:
+            post.created_at = post.created_at.replace(tzinfo=timezone.utc)
+    return posts
 
 def create_post(db: Session, post: schemas.PostCreate, user_id: int):
     """投稿を新規作成します。"""
@@ -35,4 +46,6 @@ def create_post(db: Session, post: schemas.PostCreate, user_id: int):
     db.add(db_post)
     db.commit()
     db.refresh(db_post)
+    if db_post.created_at and db_post.created_at.tzinfo is None:
+        db_post.created_at = db_post.created_at.replace(tzinfo=timezone.utc)
     return db_post
