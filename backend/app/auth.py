@@ -2,13 +2,28 @@ import os
 from datetime import datetime, timedelta
 from typing import Optional
 
+from dotenv import load_dotenv
+
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 
+# Load environment variables from a .env file if present
+load_dotenv()
+
 # .envファイルから設定を読み込みます
 SECRET_KEY = os.getenv("SECRET_KEY")
-ALGORITHM = os.getenv("ALGORITHM")
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
+if not SECRET_KEY:
+    raise RuntimeError("SECRET_KEY environment variable is required")
+
+ALGORITHM = os.getenv("ALGORITHM", "HS256")
+
+expire_str = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30")
+try:
+    ACCESS_TOKEN_EXPIRE_MINUTES = int(expire_str)
+except ValueError as exc:
+    raise RuntimeError(
+        "ACCESS_TOKEN_EXPIRE_MINUTES must be an integer"
+    ) from exc
 
 # パスワードのハッシュ化に関する設定
 # bcryptという強力なアルゴリズムを使用します
