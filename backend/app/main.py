@@ -132,3 +132,13 @@ def create_post_for_user(post: schemas.PostCreate, db: Session = Depends(get_db)
     # ここでログ出力を実装すれば、誰がいつ投稿したかのログが取れます
     logger.info("User '%s' is creating a post.", current_user.employee_id)
     return crud.create_post(db=db, post=post, user_id=current_user.id)
+
+
+@app.get("/posts/mentioned", response_model=list[schemas.Post])
+def read_mentioned_posts(
+    db: Session = Depends(get_db),
+    current_user: schemas.User = Depends(get_current_user),
+):
+    """Retrieve posts where the current user is mentioned."""
+    posts = crud.get_posts_mentioned(db, user_id=current_user.id)
+    return posts
