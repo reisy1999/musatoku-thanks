@@ -54,3 +54,31 @@ def test_user_department_name():
         user_resp = client.get("/users/me", headers=headers)
         assert user_resp.status_code == 200
         assert user_resp.json().get("department_name") == "テスト部署"
+
+
+def test_post_mentions():
+    """posts can mention users"""
+    with TestClient(app) as client:
+        # login
+        token_resp = client.post(
+            "/token",
+            data={"username": "000000", "password": "pass"},
+        )
+        assert token_resp.status_code == 200
+        token = token_resp.json()["access_token"]
+
+        headers = {"Authorization": f"Bearer {token}"}
+
+        # get current user id
+        me_resp = client.get("/users/me", headers=headers)
+        assert me_resp.status_code == 200
+        user_id = me_resp.json()["id"]
+
+        # create post mentioning the current user
+        post_resp = client.post(
+            "/posts/",
+            json={"content": "hello", "mention_user_ids": [user_id]},
+            headers=headers,
+        )
+        assert post_resp.status_code == 201
+        assert user_id in post_resp.json().get("mention_user_ids", [])
