@@ -32,6 +32,7 @@ class Post(PostBase):
 class UserBase(BaseModel):
     employee_id: str
     name: str
+    department_id: Optional[int] = None
 
 # ユーザーを作成する際に受け取るデータ型（パスワードを含む）
 class UserCreate(UserBase):
@@ -40,6 +41,7 @@ class UserCreate(UserBase):
 # API経由で返すユーザーのデータ型（パスワードは含めない）
 class User(UserBase):
     id: int
+    department_name: Optional[str] = None
 
     class Config:
         from_attributes = True

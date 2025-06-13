@@ -12,9 +12,10 @@ def create_user(db: Session, user: schemas.UserCreate):
     """ユーザーを新規作成します。"""
     hashed_password = auth.get_password_hash(user.password)
     db_user = models.User(
-        employee_id=user.employee_id, 
-        name=user.name, 
-        hashed_password=hashed_password
+        employee_id=user.employee_id,
+        name=user.name,
+        hashed_password=hashed_password,
+        department_id=user.department_id,
     )
     db.add(db_user)
     db.commit()

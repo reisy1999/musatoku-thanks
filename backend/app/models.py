@@ -5,6 +5,16 @@ from datetime import datetime, timezone
 # No.7で作成したdatabase.pyから、全てのモデルが継承するBaseクラスをインポートします
 from .database import Base
 
+
+class Department(Base):
+    __tablename__ = "departments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True, nullable=False)
+
+    # backreference to users
+    users = relationship("User", back_populates="department")
+
 class User(Base):
     __tablename__ = "users"  # データベース内でのテーブル名を指定
 
@@ -13,6 +23,13 @@ class User(Base):
     employee_id = Column(String, unique=True, index=True, nullable=False)
     name = Column(String, default="名無しさん") # ニックネーム機能を見越してデフォルト値設定
     hashed_password = Column(String, nullable=False)
+    department_id = Column(Integer, ForeignKey("departments.id"))
+
+    department = relationship("Department", back_populates="users")
+
+    @property
+    def department_name(self):
+        return self.department.name if self.department else None
 
     # リレーションシップの定義: UserとPostを連携させます
     # これにより、あるユーザーがした投稿一覧を簡単に取得できるようになります
