@@ -82,3 +82,48 @@ def test_post_mentions():
         )
         assert post_resp.status_code == 201
         assert user_id in post_resp.json().get("mention_user_ids", [])
+
+
+def test_get_posts_mentioned():
+    """/posts/mentioned returns posts mentioning the current user"""
+    with TestClient(app) as client:
+        token_resp = client.post(
+            "/token",
+            data={"username": "000000", "password": "pass"},
+        )
+        assert token_resp.status_code == 200
+        token = token_resp.json()["access_token"]
+
+        headers = {"Authorization": f"Bearer {token}"}
+
+        me_resp = client.get("/users/me", headers=headers)
+        assert me_resp.status_code == 200
+        user_id = me_resp.json()["id"]
+
+        mention_resp = client.post(
+            "/posts/",
+            json={"content": "mention timeline", "mention_user_ids": [user_id]},
+            headers=headers,
+        )
+        assert mention_resp.status_code == 201
+        mention_id = mention_resp.json()["id"]
+
+        non_mention_resp = client.post(
+            "/posts/",
+            json={"content": "no mention"},
+            headers=headers,
+        )
+        assert non_mention_resp.status_code == 201
+        non_mention_id = non_mention_resp.json()["id"]
+
+        timeline_resp = client.get("/posts/mentioned", headers=headers)
+        assert timeline_resp.status_code == 200
+        posts = timeline_resp.json()
+
+        ids = [p["id"] for p in posts]
+        assert mention_id in ids
+        assert non_mention_id not in ids
+
+        # ensure posts are sorted by created_at descending
+        created_times = [p["created_at"] for p in posts]
+        assert created_times == sorted(created_times, reverse=True)

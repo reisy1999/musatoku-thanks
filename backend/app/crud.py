@@ -63,3 +63,20 @@ def create_post(db: Session, post: schemas.PostCreate, user_id: int):
     if db_post.created_at and db_post.created_at.tzinfo is None:
         db_post.created_at = db_post.created_at.replace(tzinfo=timezone.utc)
     return db_post
+
+def get_posts_mentioned(db: Session, user_id: int, skip: int = 0, limit: int = 100):
+    """Retrieve posts where the given user is mentioned."""
+    posts = (
+        db.query(models.Post)
+        .join(models.post_mentions)
+        .options(joinedload(models.Post.mentions))
+        .filter(models.post_mentions.c.user_id == user_id)
+        .order_by(models.Post.created_at.desc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+    for post in posts:
+        if post.created_at and post.created_at.tzinfo is None:
+            post.created_at = post.created_at.replace(tzinfo=timezone.utc)
+    return posts
