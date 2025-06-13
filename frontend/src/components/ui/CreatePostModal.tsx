@@ -11,6 +11,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
   const [content, setContent] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [mentionInput, setMentionInput] = useState('');
   const MAX_CHARS = 140;
 
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -30,7 +31,11 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
     setError('');
 
     try {
-      await apiClient.post('/posts/', { content });
+      const mention_user_ids = mentionInput
+        .split(',')
+        .map((id) => parseInt(id.trim(), 10))
+        .filter((id) => !Number.isNaN(id));
+      await apiClient.post('/posts/', { content, mention_user_ids });
       // 投稿成功時、親に通知してモーダルを閉じ＆タイムラインを更新
       onPostSuccess();
     } catch (err) {
@@ -70,6 +75,15 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
               {content.length} / {MAX_CHARS}
             </p>
             {error && <p className="text-red-500 text-sm">{error}</p>}
+          </div>
+          <div className="mt-2 text-right">
+            <input
+              type="text"
+              value={mentionInput}
+              onChange={(e) => setMentionInput(e.target.value)}
+              placeholder="Mention user IDs (comma separated)"
+              className="w-full p-2 border border-gray-300 rounded-md text-sm"
+            />
           </div>
           <div className="flex justify-end mt-4">
             <button 
