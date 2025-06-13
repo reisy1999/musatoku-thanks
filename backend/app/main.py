@@ -61,31 +61,31 @@ def on_startup():
     users = [
         {
             "employee_id": "000000",
-            "name": "テストユーザー",
+            "name": "ﾃｽﾄﾕｰｻﾞｰ",
             "password": "pass",
             "department_id": 0,
         },
         {
             "employee_id": "000001",
-            "name": "000001",
+            "name": "ﾃｽﾄｲﾁ",
             "password": "000001",
             "department_id": 2,
         },
         {
             "employee_id": "000002",
-            "name": "000002",
+            "name": "ﾃｽﾄﾆ",
             "password": "000002",
             "department_id": 3,
         },
         {
             "employee_id": "000003",
-            "name": "000003",
+            "name": "ﾃｽﾄｻﾝ",
             "password": "000003",
             "department_id": 4,
         },
         {
             "employee_id": "999999",
-            "name": "999999",
+            "name": "ﾃｽﾄｶﾝﾘｼｬ",
             "password": "admin",
             "department_id": 0,
         },
@@ -95,7 +95,8 @@ def on_startup():
         user = crud.get_user_by_employee_id(db, employee_id=user_data["employee_id"])
         if user:
             user.department_id = user_data["department_id"]
-            user.name = user_data["name"]
+            normalized = schemas.UserUpdate(name=user_data["name"])
+            user.name = normalized.name
             user.hashed_password = auth.get_password_hash(user_data["password"])
             db.commit()
         else:
