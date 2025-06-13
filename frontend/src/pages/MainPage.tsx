@@ -16,6 +16,9 @@ const MainPage: React.FC<MainPageProps> = ({ onLogout }) => {
   // これを更新することでタイムラインの再読み込みをトリガーします。
   const [postSuccess, setPostSuccess] = useState(false);
 
+  // 現在選択されているタイムラインタブ
+  const [activeTab, setActiveTab] = useState<'all' | 'mentioned'>('all');
+
   const handlePostSuccess = () => {
     setIsModalOpen(false); // モーダルを閉じる
     setPostSuccess(!postSuccess); // タイムラインの再読み込みをトリガー
@@ -41,10 +44,34 @@ const MainPage: React.FC<MainPageProps> = ({ onLogout }) => {
 
         {/* --- 中央カラム (メインタイムライン) --- */}
         <main className="col-span-6 border-l border-r border-gray-200">
-          <div className="p-4 border-b border-gray-200">
-            <h2 className="text-xl font-bold">ホーム</h2>
+          <div className="border-b border-gray-200">
+            <div className="flex">
+              <button
+                className={`flex-1 p-4 text-center font-semibold focus:outline-none ${
+                  activeTab === 'all'
+                    ? 'border-b-2 border-blue-500 text-blue-600'
+                    : 'text-gray-500'
+                }`}
+                onClick={() => setActiveTab('all')}
+              >
+                All Posts
+              </button>
+              <button
+                className={`flex-1 p-4 text-center font-semibold focus:outline-none ${
+                  activeTab === 'mentioned'
+                    ? 'border-b-2 border-blue-500 text-blue-600'
+                    : 'text-gray-500'
+                }`}
+                onClick={() => setActiveTab('mentioned')}
+              >
+                Mentioned Posts
+              </button>
+            </div>
           </div>
-          <Timeline postSuccessTrigger={postSuccess} />
+          <Timeline
+            postSuccessTrigger={postSuccess}
+            endpoint={activeTab === 'all' ? '/posts/' : '/posts/mentioned'}
+          />
         </main>
         
         {/* --- 右カラム (空きスペース) --- */}
