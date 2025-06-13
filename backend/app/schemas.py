@@ -1,4 +1,5 @@
-from pydantic import BaseModel, constr
+from pydantic import BaseModel, constr, field_validator
+import jaconv
 from datetime import datetime
 from typing import Optional
 
@@ -36,9 +37,29 @@ class UserBase(BaseModel):
     name: str
     department_id: Optional[int] = None
 
+    @field_validator("name", mode="before")
+    @classmethod
+    def normalize_name(cls, v: str) -> str:
+        if v is None:
+            return v
+        return jaconv.z2h(v, kana=True, ascii=False, digit=False)
+
 # ユーザーを作成する際に受け取るデータ型（パスワードを含む）
 class UserCreate(UserBase):
     password: str
+
+
+class UserUpdate(BaseModel):
+    name: Optional[str] = None
+    department_id: Optional[int] = None
+    password: Optional[str] = None
+
+    @field_validator("name", mode="before")
+    @classmethod
+    def normalize_name(cls, v: str) -> str | None:
+        if v is None:
+            return v
+        return jaconv.z2h(v, kana=True, ascii=False, digit=False)
 
 # API経由で返すユーザーのデータ型（パスワードは含めない）
 class User(UserBase):

@@ -18,6 +18,7 @@ python-dotenv
 
 # Form data parsing for OAuth2PasswordRequestForm
 python-multipart
+jaconv
 
 pytest
 requests
