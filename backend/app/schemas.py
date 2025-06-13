@@ -11,12 +11,14 @@ class PostBase(BaseModel):
 
 # 投稿を作成する際に受け取るデータ型
 class PostCreate(PostBase):
-    pass
+    # IDs of users mentioned in this post
+    mention_user_ids: list[int] = []
 
 # フロントエンドに返す投稿のデータ型
 class Post(PostBase):
     id: int
     created_at: datetime
+    mention_user_ids: list[int] = []
 
     # ★★★計画書通り、ここには投稿者の情報を含めません★★★
     # これにより、タイムラインの匿名性を保証します。

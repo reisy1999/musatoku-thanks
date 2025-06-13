@@ -1,9 +1,17 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Table
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 
 # No.7で作成したdatabase.pyから、全てのモデルが継承するBaseクラスをインポートします
 from .database import Base
+
+# Association table for Post mentions
+post_mentions = Table(
+    "post_mentions",
+    Base.metadata,
+    Column("post_id", ForeignKey("posts.id"), primary_key=True),
+    Column("user_id", ForeignKey("users.id"), primary_key=True),
+)
 
 
 class Department(Base):
@@ -34,6 +42,12 @@ class User(Base):
     # リレーションシップの定義: UserとPostを連携させます
     # これにより、あるユーザーがした投稿一覧を簡単に取得できるようになります
     posts = relationship("Post", back_populates="author")
+    # Posts that mention this user
+    mentioned_in = relationship(
+        "Post",
+        secondary=post_mentions,
+        back_populates="mentions",
+    )
 
 class Post(Base):
     __tablename__ = "posts"
@@ -52,3 +66,14 @@ class Post(Base):
     # リレーションシップの定義: PostとUserを連携させます
     # これにより、投稿から投稿主の情報を簡単に取得できるようになります
     author = relationship("User", back_populates="posts")
+
+    # Users mentioned in this post
+    mentions = relationship(
+        "User",
+        secondary=post_mentions,
+        back_populates="mentioned_in",
+    )
+
+    @property
+    def mention_user_ids(self) -> list[int]:
+        return [user.id for user in self.mentions]

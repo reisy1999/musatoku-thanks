@@ -36,6 +36,7 @@ def get_posts(db: Session, skip: int = 0, limit: int = 100):
     """
     posts = (
         db.query(models.Post)
+        .options(joinedload(models.Post.mentions))
         .order_by(models.Post.created_at.desc())
         .offset(skip)
         .limit(limit)
@@ -48,7 +49,14 @@ def get_posts(db: Session, skip: int = 0, limit: int = 100):
 
 def create_post(db: Session, post: schemas.PostCreate, user_id: int):
     """投稿を新規作成します。"""
-    db_post = models.Post(**post.dict(), author_id=user_id)
+    db_post = models.Post(content=post.content, author_id=user_id)
+    if post.mention_user_ids:
+        mentioned_users = (
+            db.query(models.User)
+            .filter(models.User.id.in_(post.mention_user_ids))
+            .all()
+        )
+        db_post.mentions.extend(mentioned_users)
     db.add(db_post)
     db.commit()
     db.refresh(db_post)
