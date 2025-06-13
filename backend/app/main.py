@@ -38,17 +38,33 @@ app.add_middleware(
 
 @app.on_event("startup")
 def on_startup():
-    """★★★計画書通り、アプリ起動時にテストユーザーを作成します★★★"""
+    """アプリ起動時の初期データ登録を行います"""
     db = SessionLocal()
+
+    # Create default department if not exists
+    department = db.query(models.Department).filter(models.Department.id == 0).first()
+    if not department:
+        department = models.Department(id=0, name="テスト部署")
+        db.add(department)
+        db.commit()
+
+    # Ensure default user exists and is assigned to the department
     user = crud.get_user_by_employee_id(db, employee_id="000000")
     if not user:
         user_in = schemas.UserCreate(
             employee_id="000000",
             name="テストユーザー",
-            password="pass"
+            password="pass",
+            department_id=0,
         )
         crud.create_user(db=db, user=user_in)
         logger.info("初期テストユーザー(ID:000000)を作成しました。")
+    else:
+        user.department_id = 0
+        # update password to ensure consistency
+        user.hashed_password = auth.get_password_hash("pass")
+        db.commit()
+
     db.close()
 
 # --- 依存関係 ---

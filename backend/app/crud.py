@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from datetime import timezone
 from . import models, schemas, auth
 
@@ -6,7 +6,12 @@ from . import models, schemas, auth
 
 def get_user_by_employee_id(db: Session, employee_id: str):
     """社員IDを元にユーザーを一件取得します。"""
-    return db.query(models.User).filter(models.User.employee_id == employee_id).first()
+    return (
+        db.query(models.User)
+        .options(joinedload(models.User.department))
+        .filter(models.User.employee_id == employee_id)
+        .first()
+    )
 
 def create_user(db: Session, user: schemas.UserCreate):
     """ユーザーを新規作成します。"""
