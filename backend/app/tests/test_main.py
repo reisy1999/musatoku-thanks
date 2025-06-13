@@ -38,3 +38,19 @@ def test_post_timestamp_timezone():
         # ensure ISO 8601 can be parsed and includes tzinfo
         parsed = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
         assert parsed.tzinfo is not None
+
+
+def test_user_department_name():
+    """/users/me should include the department name"""
+    with TestClient(app) as client:
+        token_resp = client.post(
+            "/token",
+            data={"username": "000000", "password": "pass"},
+        )
+        assert token_resp.status_code == 200
+        token = token_resp.json()["access_token"]
+
+        headers = {"Authorization": f"Bearer {token}"}
+        user_resp = client.get("/users/me", headers=headers)
+        assert user_resp.status_code == 200
+        assert user_resp.json().get("department_name") == "テスト部署"
