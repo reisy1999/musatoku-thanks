@@ -11,6 +11,7 @@ interface Post {
 // 親コンポーネントから受け取るPropsの型を定義
 type TimelineProps = {
   postSuccessTrigger: boolean;
+  endpoint: string;
 };
 
 // 日付を見やすい形式（例：「5分前」）に変換するヘルパー関数
@@ -31,7 +32,7 @@ const formatRelativeTime = (isoString: string): string => {
 };
 
 
-const Timeline: React.FC<TimelineProps> = ({ postSuccessTrigger }) => {
+const Timeline: React.FC<TimelineProps> = ({ postSuccessTrigger, endpoint }) => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -40,7 +41,7 @@ const Timeline: React.FC<TimelineProps> = ({ postSuccessTrigger }) => {
     const fetchPosts = async () => {
       try {
         setLoading(true);
-        const response = await apiClient.get<Post[]>('/posts/');
+        const response = await apiClient.get<Post[]>(endpoint);
         setPosts(response.data);
         setError(null);
       } catch (err) {
@@ -52,8 +53,8 @@ const Timeline: React.FC<TimelineProps> = ({ postSuccessTrigger }) => {
     };
 
     fetchPosts();
-    // ★★★ postSuccessTriggerが変更されたら、投稿を再取得します ★★★
-  }, [postSuccessTrigger]);
+    // postSuccessTriggerまたはendpointが変更されたら、投稿を再取得します
+  }, [postSuccessTrigger, endpoint]);
 
   if (loading && posts.length === 0) {
     return <div className="p-4 text-center text-gray-500">タイムラインを読み込んでいます...</div>;
