@@ -2,8 +2,10 @@ import axios from 'axios';
 
 // APIクライアントのインスタンスを作成
 const apiClient = axios.create({
-  // No.14のvite.config.tsで設定したプロキシのパスに合わせます
-  baseURL: '/api',
+  // FastAPIバックエンドのURL
+  // 開発環境でフロントエンドのみを起動した場合でも
+  // 正しいエンドポイントにリクエストが飛ぶよう、明示的に指定する
+  baseURL: 'http://localhost:8000',
   // リクエストヘッダーのデフォルト設定
   headers: {
     'Content-Type': 'application/json',
