@@ -17,6 +17,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
   const [mentionError, setMentionError] = useState('');
   const [searchResults, setSearchResults] = useState<UserSearchResult[]>([]);
   const [selectedMentions, setSelectedMentions] = useState<UserSearchResult[]>([]);
+  const [isComposing, setIsComposing] = useState(false);
   const MAX_CHARS = 140;
 
   const kanaRegex = /^[\u3041-\u3096\u30A1-\u30FF\uFF66-\uFF9D]+$/;
@@ -28,6 +29,8 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
     const value = e.target.value;
     setMentionQuery(value);
 
+    if (isComposing && e.type !== 'compositionend') return;
+
     if (value && !kanaRegex.test(value)) {
       setMentionError('ひらがな or カタカナ で入力してください');
       setNormalizedQuery('');
@@ -38,6 +41,13 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
     setMentionError('');
     const halfKana = normalizeKana(value);
     setNormalizedQuery(halfKana);
+  };
+
+  const handleCompositionEnd = (
+    e: React.CompositionEvent<HTMLInputElement>,
+  ) => {
+    setIsComposing(false);
+    handleMentionChange(e as unknown as React.ChangeEvent<HTMLInputElement>);
   };
 
   type UserSearchResult = {
@@ -130,6 +140,8 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
               type="text"
               value={mentionQuery}
               onChange={handleMentionChange}
+              onCompositionStart={() => setIsComposing(true)}
+              onCompositionEnd={handleCompositionEnd}
               placeholder="ひらがな / カタカナ で検索してください"
               className={`w-full p-2 rounded-md text-sm border ${mentionError ? 'border-red-500' : 'border-gray-300'}`}
             />
