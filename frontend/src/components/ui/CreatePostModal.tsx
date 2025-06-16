@@ -18,6 +18,12 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
   const [selectedMentions, setSelectedMentions] = useState<UserSearchResult[]>([]);
   const MAX_CHARS = 140;
 
+  const handleMentionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const halfKana = jaconv.toHanKana(jaconv.toKatakana(e.target.value));
+    setMentionQuery(halfKana);
+    setNormalizedQuery(halfKana);
+  };
+
   type UserSearchResult = {
     id: number;
     name: string;
@@ -107,12 +113,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
             <input
               type="text"
               value={mentionQuery}
-              onChange={(e) => {
-                setMentionQuery(e.target.value);
-                setNormalizedQuery(
-                  jaconv.toHanKana(jaconv.toKatakana(e.target.value)),
-                );
-              }}
+              onChange={handleMentionChange}
               placeholder="名前でメンション"
               className="w-full p-2 border border-gray-300 rounded-md text-sm"
             />
