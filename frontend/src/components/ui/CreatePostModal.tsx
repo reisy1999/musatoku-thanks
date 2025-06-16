@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../../services/api';
+import jaconv from 'jaconv';
 
 // 親コンポーネントから受け取るPropsの型を定義
 type CreatePostModalProps = {
@@ -35,9 +36,10 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
         return;
       }
       try {
+        const normalized = jaconv.toHanKana(jaconv.toKatakana(mentionQuery));
         const resp = await apiClient.get<UserSearchResult[]>(
           '/users/search',
-          { params: { query: mentionQuery } },
+          { params: { query: normalized } },
         );
         setSearchResults(resp.data);
       } catch (err) {
