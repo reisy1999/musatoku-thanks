@@ -14,13 +14,29 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [mentionQuery, setMentionQuery] = useState('');
   const [normalizedQuery, setNormalizedQuery] = useState('');
+  const [mentionError, setMentionError] = useState('');
   const [searchResults, setSearchResults] = useState<UserSearchResult[]>([]);
   const [selectedMentions, setSelectedMentions] = useState<UserSearchResult[]>([]);
   const MAX_CHARS = 140;
 
+  const kanaRegex = /^[\u3041-\u3096\u30A1-\u30FF\uFF66-\uFF9D]+$/;
+
+  const normalizeKana = (input: string) =>
+    jaconv.toHanKana(jaconv.toKatakana(input));
+
   const handleMentionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const halfKana = jaconv.toHanKana(jaconv.toKatakana(e.target.value));
-    setMentionQuery(halfKana);
+    const value = e.target.value;
+    setMentionQuery(value);
+
+    if (value && !kanaRegex.test(value)) {
+      setMentionError('ひらがな or カタカナ で入力してください');
+      setNormalizedQuery('');
+      setSearchResults([]);
+      return;
+    }
+
+    setMentionError('');
+    const halfKana = normalizeKana(value);
     setNormalizedQuery(halfKana);
   };
 
@@ -114,9 +130,12 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
               type="text"
               value={mentionQuery}
               onChange={handleMentionChange}
-              placeholder="名前でメンション"
-              className="w-full p-2 border border-gray-300 rounded-md text-sm"
+              placeholder="ひらがな / カタカナ で検索してください"
+              className={`w-full p-2 rounded-md text-sm border ${mentionError ? 'border-red-500' : 'border-gray-300'}`}
             />
+            {mentionError && (
+              <p className="text-red-500 text-sm mt-1">{mentionError}</p>
+            )}
             {searchResults.length > 0 && (
               <ul className="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 max-h-40 overflow-y-auto">
                 {searchResults.map((u) => (
@@ -132,6 +151,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
                       setSelectedMentions([...selectedMentions, u]);
                       setMentionQuery('');
                       setNormalizedQuery('');
+                      setMentionError('');
                       setSearchResults([]);
                     }}
                   >
