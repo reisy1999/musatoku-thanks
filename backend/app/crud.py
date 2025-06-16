@@ -27,6 +27,17 @@ def create_user(db: Session, user: schemas.UserCreate):
     db.refresh(db_user)
     return db_user
 
+
+def search_users(db: Session, query: str, limit: int = 10):
+    """Search users by name with partial match."""
+    return (
+        db.query(models.User)
+        .options(joinedload(models.User.department))
+        .filter(models.User.name.like(f"%{query}%"))
+        .limit(limit)
+        .all()
+    )
+
 # --- Post CRUD ---
 
 def get_posts(db: Session, skip: int = 0, limit: int = 100):
