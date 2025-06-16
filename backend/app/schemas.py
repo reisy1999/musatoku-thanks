@@ -70,6 +70,17 @@ class User(UserBase):
         from_attributes = True
 
 
+class UserSearchResult(BaseModel):
+    """Simplified user representation for search results."""
+
+    id: int
+    name: str
+    department_name: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
 # --- Token Schemas ---
 
 # ログイン成功時にフロントエンドに返すアクセストークンの型

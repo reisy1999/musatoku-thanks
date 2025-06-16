@@ -127,3 +127,19 @@ def test_get_posts_mentioned():
         # ensure posts are sorted by created_at descending
         created_times = [p["created_at"] for p in posts]
         assert created_times == sorted(created_times, reverse=True)
+
+
+def test_user_search_endpoint():
+    """/users/search should perform partial name search"""
+    with TestClient(app) as client:
+        resp_short = client.get("/users/search?query=a")
+        assert resp_short.status_code == 200
+        assert resp_short.json() == []
+
+        resp = client.get("/users/search", params={"query": "\uff83\uff7d"})
+        assert resp.status_code == 200
+        results = resp.json()
+        assert len(results) > 0
+        assert len(results) <= 10
+        first = results[0]
+        assert {"id", "name", "department_name"}.issubset(first.keys())

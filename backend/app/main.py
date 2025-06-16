@@ -160,6 +160,15 @@ async def read_users_me(current_user: schemas.User = Depends(get_current_user)):
     """現在ログインしているユーザーの情報を取得するエンドポイント"""
     return current_user
 
+
+@app.get("/users/search", response_model=list[schemas.UserSearchResult])
+def search_users(query: str, db: Session = Depends(get_db)):
+    """Search users by name. Requires query length >= 2 characters."""
+    if len(query) < 2:
+        return []
+    users = crud.search_users(db, query=query)
+    return users
+
 @app.get("/posts/", response_model=list[schemas.Post])
 def read_posts(db: Session = Depends(get_db)):
     """投稿を全件取得するエンドポイント。誰でも見れるように認証はかけない。"""

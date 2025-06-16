@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import apiClient from '../../services/api';
 
 // 親コンポーネントから受け取るPropsの型を定義
@@ -11,14 +11,41 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
   const [content, setContent] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [mentionInput, setMentionInput] = useState('');
+  const [mentionQuery, setMentionQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<UserSearchResult[]>([]);
+  const [selectedMentions, setSelectedMentions] = useState<UserSearchResult[]>([]);
   const MAX_CHARS = 140;
+
+  type UserSearchResult = {
+    id: number;
+    name: string;
+    department_name?: string | null;
+  };
 
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     if (e.target.value.length <= MAX_CHARS) {
       setContent(e.target.value);
     }
   };
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      if (mentionQuery.length < 2) {
+        setSearchResults([]);
+        return;
+      }
+      try {
+        const resp = await apiClient.get<UserSearchResult[]>(
+          '/users/search',
+          { params: { query: mentionQuery } },
+        );
+        setSearchResults(resp.data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchUsers();
+  }, [mentionQuery]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,10 +58,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
     setError('');
 
     try {
-      const mention_user_ids = mentionInput
-        .split(',')
-        .map((id) => parseInt(id.trim(), 10))
-        .filter((id) => !Number.isNaN(id));
+      const mention_user_ids = selectedMentions.map((u) => u.id);
       await apiClient.post('/posts/', { content, mention_user_ids });
       // 投稿成功時、親に通知してモーダルを閉じ＆タイムラインを更新
       onPostSuccess();
@@ -76,14 +100,57 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
             </p>
             {error && <p className="text-red-500 text-sm">{error}</p>}
           </div>
-          <div className="mt-2 text-right">
+          <div className="mt-2 relative">
             <input
               type="text"
-              value={mentionInput}
-              onChange={(e) => setMentionInput(e.target.value)}
-              placeholder="Mention user IDs (comma separated)"
+              value={mentionQuery}
+              onChange={(e) => setMentionQuery(e.target.value)}
+              placeholder="名前でメンション"
               className="w-full p-2 border border-gray-300 rounded-md text-sm"
             />
+            {searchResults.length > 0 && (
+              <ul className="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 max-h-40 overflow-y-auto">
+                {searchResults.map((u) => (
+                  <li
+                    key={u.id}
+                    className="p-2 hover:bg-gray-100 cursor-pointer"
+                    onClick={() => {
+                      if (
+                        selectedMentions.find((m) => m.id === u.id) ||
+                        selectedMentions.length >= 3
+                      )
+                        return;
+                      setSelectedMentions([...selectedMentions, u]);
+                      setMentionQuery('');
+                      setSearchResults([]);
+                    }}
+                  >
+                    {u.name}（{u.department_name ?? ''}）
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="flex flex-wrap gap-2 mt-2">
+              {selectedMentions.map((u) => (
+                <span
+                  key={u.id}
+                  className="bg-blue-100 text-blue-700 px-2 py-1 rounded flex items-center"
+                >
+                  {u.name}
+                  <button
+                    type="button"
+                    className="ml-1"
+                    onClick={() =>
+                      setSelectedMentions(
+                        selectedMentions.filter((m) => m.id !== u.id),
+                      )
+                    }
+                  >
+                    &times;
+                  </button>
+                </span>
+              ))}
+            </div>
           </div>
           <div className="flex justify-end mt-4">
             <button 
