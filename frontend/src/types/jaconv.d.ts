@@ -1,7 +1,8 @@
 declare module 'jaconv' {
   const jaconv: {
-    toKatakana: (s: string) => string;
-    toHanKana: (s: string) => string;
+    toKanaKana: (input: string) => string;
+    toKatakana: (input: string) => string;
+    toHanKana: (input: string) => string;
   };
-  export default jaconv;
+  export = jaconv;
 }
