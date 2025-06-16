@@ -1,5 +1,7 @@
 from fastapi.testclient import TestClient
 from ..main import app  # main.pyからFastAPIアプリをインポート
+from ..database import SessionLocal
+from .. import crud, schemas, models
 
 def test_read_main():
     """
@@ -130,16 +132,53 @@ def test_get_posts_mentioned():
 
 
 def test_user_search_endpoint():
-    """/users/search should perform partial name search"""
+    """/users/search should support partial matches and limit results"""
     with TestClient(app) as client:
+        # ensure startup initialized departments
+        db = SessionLocal()
+        created = []
+        # create users that should match the query
+        for i in range(12):
+            user_in = schemas.UserCreate(
+                employee_id=f"alpha{i:03d}",
+                name=f"AlphaUser{i}",
+                password="pass",
+                department_id=2 if i % 2 == 0 else 3,
+            )
+            created.append(crud.create_user(db, user_in))
+        # create some users that should not match
+        for i in range(3):
+            user_in = schemas.UserCreate(
+                employee_id=f"beta{i:03d}",
+                name=f"BetaUser{i}",
+                password="pass",
+                department_id=2,
+            )
+            created.append(crud.create_user(db, user_in))
+        db.commit()
+
+        # short query should return empty list
         resp_short = client.get("/users/search?query=a")
         assert resp_short.status_code == 200
         assert resp_short.json() == []
 
-        resp = client.get("/users/search", params={"query": "\uff83\uff7d"})
+        # partial match query - should only include Alpha users and be limited to 10 results
+        resp = client.get("/users/search", params={"query": "Alpha"})
         assert resp.status_code == 200
         results = resp.json()
-        assert len(results) > 0
-        assert len(results) <= 10
-        first = results[0]
-        assert {"id", "name", "department_name"}.issubset(first.keys())
+        assert len(results) == 10
+        assert all("Alpha" in u["name"] for u in results)
+        assert all(u["department_name"] in ["2A病棟", "3B病棟"] for u in results)
+        for u in results:
+            assert {"id", "name", "department_name"}.issubset(u.keys())
+
+        # ensure non-matching query returns empty list
+        resp_none = client.get("/users/search", params={"query": "Unknown"})
+        assert resp_none.status_code == 200
+        assert resp_none.json() == []
+
+        # cleanup created users
+        for user in created:
+            db.delete(db.query(models.User).get(user.id))
+        db.commit()
+        db.close()
