@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../../services/api';
+import PostCard from './PostCard';
+import ReportModal from './ReportModal';
 
 // 投稿データの型を定義
 interface Post {
@@ -36,6 +38,7 @@ const Timeline: React.FC<TimelineProps> = ({ postSuccessTrigger, endpoint }) => 
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [reportPost, setReportPost] = useState<Post | null>(null);
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -71,15 +74,11 @@ const Timeline: React.FC<TimelineProps> = ({ postSuccessTrigger, endpoint }) => 
   return (
     <div>
       {posts.map((post) => (
-        <div key={post.id} className="p-4 border-b border-gray-200 hover:bg-gray-50">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-sm text-gray-500">
-              {formatRelativeTime(post.created_at)}
-            </span>
-          </div>
-          <p className="text-gray-800 whitespace-pre-wrap">{post.content}</p>
-        </div>
+        <PostCard key={post.id} post={post} onReport={(p) => setReportPost(p)} />
       ))}
+      {reportPost && (
+        <ReportModal post={reportPost} onClose={() => setReportPost(null)} />
+      )}
     </div>
   );
 };
