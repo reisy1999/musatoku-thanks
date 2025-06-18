@@ -47,6 +47,7 @@ class UserBase(BaseModel):
 # ユーザーを作成する際に受け取るデータ型（パスワードを含む）
 class UserCreate(UserBase):
     password: str
+    is_admin: bool = False
 
 
 class UserUpdate(BaseModel):
@@ -65,6 +66,7 @@ class UserUpdate(BaseModel):
 class User(UserBase):
     id: int
     department_name: Optional[str] = None
+    is_admin: bool = False
 
     class Config:
         from_attributes = True

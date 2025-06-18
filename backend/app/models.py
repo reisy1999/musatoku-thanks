@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Table
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Table, Boolean
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 
@@ -32,6 +32,7 @@ class User(Base):
     name = Column(String, default="名無しさん") # ニックネーム機能を見越してデフォルト値設定
     hashed_password = Column(String, nullable=False)
     department_id = Column(Integer, ForeignKey("departments.id"))
+    is_admin = Column(Boolean, default=False)
 
     department = relationship("Department", back_populates="users")
 
