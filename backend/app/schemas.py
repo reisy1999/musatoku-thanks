@@ -125,3 +125,23 @@ class Token(BaseModel):
 # トークンをデコードした後のデータ（ペイロード）の型
 class TokenData(BaseModel):
     employee_id: Optional[str] = None
+
+
+# --- Report Schemas ---
+
+class ReportCreate(BaseModel):
+    reported_post_id: int
+    reason: constr(max_length=255)
+
+
+class ReportOut(BaseModel):
+    id: int
+    reported_post_id: int
+    reporter_user_id: int
+    reason: str
+    reported_at: datetime
+    reporter_name: Optional[str] = None
+    post_content: Optional[str] = None
+
+    class Config:
+        from_attributes = True
