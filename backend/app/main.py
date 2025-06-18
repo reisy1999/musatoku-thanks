@@ -9,6 +9,8 @@ from jose import JWTError, jwt # JWTError, jwtをインポート
 from . import crud, models, schemas, auth
 from .database import SessionLocal, engine, Base
 from .routers.admin import users as admin_users
+from .routers.admin import departments as admin_departments
+from .routers.admin import posts as admin_posts
 
 # Configure basic logging
 logging.basicConfig(
@@ -197,3 +199,5 @@ def read_mentioned_posts(
 
 # include routers
 app.include_router(admin_users.router)
+app.include_router(admin_departments.router)
+app.include_router(admin_posts.router)
