@@ -31,4 +31,8 @@ def test_report_flow():
         list_resp = client.get("/admin/reports", headers=headers_admin)
         assert list_resp.status_code == 200
         reports = list_resp.json()
-        assert any(r["id"] == report_id and r["post_content"] == "report target" for r in reports)
+        target = next(r for r in reports if r["id"] == report_id)
+        assert target["post_content"] == "report target"
+        assert target["post_author_id"] is not None
+        assert target.get("post_author_name")
+        assert target.get("post_created_at")

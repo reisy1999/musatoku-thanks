@@ -7,7 +7,7 @@ from ...dependencies import get_db, require_admin
 router = APIRouter(prefix="/admin/reports", tags=["admin"])
 
 
-@router.get("/", response_model=list[schemas.ReportOut])
+@router.get("/", response_model=list[schemas.AdminReport])
 def list_reports(
     db: Session = Depends(get_db),
     _: schemas.User = Depends(require_admin),
@@ -16,14 +16,25 @@ def list_reports(
     result = []
     for r in reports:
         result.append(
-            schemas.ReportOut(
+            schemas.AdminReport(
                 id=r.id,
                 reported_post_id=r.reported_post_id,
                 reporter_user_id=r.reporter_user_id,
+                reporter_name=r.reporter.name if r.reporter else None,
                 reason=r.reason,
                 reported_at=r.reported_at,
-                reporter_name=r.reporter.name if r.reporter else None,
                 post_content=r.reported_post.content if r.reported_post else None,
+                post_author_id=(
+                    r.reported_post.author.id
+                    if r.reported_post and r.reported_post.author
+                    else None
+                ),
+                post_author_name=(
+                    r.reported_post.author.name
+                    if r.reported_post and r.reported_post.author
+                    else None
+                ),
+                post_created_at=r.reported_post.created_at if r.reported_post else None,
             )
         )
     return result

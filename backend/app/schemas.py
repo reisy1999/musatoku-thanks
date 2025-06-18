@@ -145,3 +145,19 @@ class ReportOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class AdminReport(BaseModel):
+    id: int
+    reported_post_id: int
+    reporter_user_id: int
+    reporter_name: Optional[str] = None
+    reason: str
+    reported_at: datetime
+    post_content: Optional[str] = None
+    post_author_id: Optional[int] = None
+    post_author_name: Optional[str] = None
+    post_created_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True

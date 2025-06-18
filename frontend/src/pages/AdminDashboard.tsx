@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import UserAdminPanel from '../components/admin/UserAdminPanel';
 import DepartmentAdminPanel from '../components/admin/DepartmentAdminPanel';
 import PostAdminPanel from '../components/admin/PostAdminPanel';
+import ReportAdminPanel from '../components/admin/ReportAdminPanel';
 
 const AdminDashboard: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'users' | 'departments' | 'posts'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'departments' | 'posts' | 'reports'>('users');
 
   const renderActivePanel = () => {
     switch (activeTab) {
@@ -12,6 +13,8 @@ const AdminDashboard: React.FC = () => {
         return <DepartmentAdminPanel />;
       case 'posts':
         return <PostAdminPanel />;
+      case 'reports':
+        return <ReportAdminPanel />;
       case 'users':
       default:
         return <UserAdminPanel />;
@@ -52,6 +55,16 @@ const AdminDashboard: React.FC = () => {
             }`}
           >
             Posts
+          </button>
+          <button
+            onClick={() => setActiveTab('reports')}
+            className={`py-2 px-4 font-semibold focus:outline-none ${
+              activeTab === 'reports'
+                ? 'border-b-2 border-blue-500 text-blue-600'
+                : 'text-gray-500'
+            }`}
+          >
+            Reports
           </button>
         </div>
       </div>
