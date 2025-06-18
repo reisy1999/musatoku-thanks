@@ -1,10 +1,61 @@
-import React from 'react';
+import React, { useState } from 'react';
+import UserAdminPanel from '../components/admin/UserAdminPanel';
+import DepartmentAdminPanel from '../components/admin/DepartmentAdminPanel';
+import PostAdminPanel from '../components/admin/PostAdminPanel';
 
 const AdminDashboard: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<'users' | 'departments' | 'posts'>('users');
+
+  const renderActivePanel = () => {
+    switch (activeTab) {
+      case 'departments':
+        return <DepartmentAdminPanel />;
+      case 'posts':
+        return <PostAdminPanel />;
+      case 'users':
+      default:
+        return <UserAdminPanel />;
+    }
+  };
+
   return (
     <div className="p-8">
-      <h1 className="text-2xl font-bold mb-4">Admin Panel</h1>
-      {/* 今後の管理機能をここに追加 */}
+      <h1 className="text-2xl font-bold mb-6">Admin Panel</h1>
+      <div className="mb-4 border-b border-gray-200">
+        <div className="flex space-x-4">
+          <button
+            onClick={() => setActiveTab('users')}
+            className={`py-2 px-4 font-semibold focus:outline-none ${
+              activeTab === 'users'
+                ? 'border-b-2 border-blue-500 text-blue-600'
+                : 'text-gray-500'
+            }`}
+          >
+            Users
+          </button>
+          <button
+            onClick={() => setActiveTab('departments')}
+            className={`py-2 px-4 font-semibold focus:outline-none ${
+              activeTab === 'departments'
+                ? 'border-b-2 border-blue-500 text-blue-600'
+                : 'text-gray-500'
+            }`}
+          >
+            Departments
+          </button>
+          <button
+            onClick={() => setActiveTab('posts')}
+            className={`py-2 px-4 font-semibold focus:outline-none ${
+              activeTab === 'posts'
+                ? 'border-b-2 border-blue-500 text-blue-600'
+                : 'text-gray-500'
+            }`}
+          >
+            Posts
+          </button>
+        </div>
+      </div>
+      {renderActivePanel()}
     </div>
   );
 };
