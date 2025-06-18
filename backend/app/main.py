@@ -8,6 +8,7 @@ from jose import JWTError, jwt # JWTError, jwtをインポート
 # これまでに作成した各モジュールをインポート
 from . import crud, models, schemas, auth
 from .database import SessionLocal, engine, Base
+from .routers.admin import users as admin_users
 
 # Configure basic logging
 logging.basicConfig(
@@ -88,6 +89,7 @@ def on_startup():
             "name": "ﾃｽﾄｶﾝﾘｼｬ",
             "password": "admin",
             "department_id": 0,
+            "is_admin": True,
         },
     ]
 
@@ -98,6 +100,7 @@ def on_startup():
             normalized = schemas.UserUpdate(name=user_data["name"])
             user.name = normalized.name
             user.hashed_password = auth.get_password_hash(user_data["password"])
+            user.is_admin = user_data.get("is_admin", False)
             db.commit()
         else:
             user_in = schemas.UserCreate(**user_data)
@@ -191,3 +194,6 @@ def read_mentioned_posts(
     """Retrieve posts where the current user is mentioned."""
     posts = crud.get_posts_mentioned(db, user_id=current_user.id)
     return posts
+
+# include routers
+app.include_router(admin_users.router)

@@ -21,11 +21,23 @@ def create_user(db: Session, user: schemas.UserCreate):
         name=user.name,
         hashed_password=hashed_password,
         department_id=user.department_id,
+        is_admin=user.is_admin,
     )
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
     return db_user
+
+
+def get_users(db: Session, skip: int = 0, limit: int = 100):
+    """Retrieve multiple users."""
+    return (
+        db.query(models.User)
+        .options(joinedload(models.User.department))
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
 
 
 def search_users(db: Session, query: str, limit: int = 10):
