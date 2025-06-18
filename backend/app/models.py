@@ -33,6 +33,7 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     department_id = Column(Integer, ForeignKey("departments.id"))
     is_admin = Column(Boolean, default=False)
+    is_active = Column(Boolean, default=True)
 
     department = relationship("Department", back_populates="users")
 

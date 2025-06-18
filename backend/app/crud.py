@@ -9,7 +9,7 @@ def get_user_by_employee_id(db: Session, employee_id: str):
     return (
         db.query(models.User)
         .options(joinedload(models.User.department))
-        .filter(models.User.employee_id == employee_id)
+        .filter(models.User.employee_id == employee_id, models.User.is_active == True)
         .first()
     )
 
@@ -22,6 +22,7 @@ def create_user(db: Session, user: schemas.UserCreate):
         hashed_password=hashed_password,
         department_id=user.department_id,
         is_admin=user.is_admin,
+        is_active=True,
     )
     db.add(db_user)
     db.commit()
@@ -49,6 +50,51 @@ def search_users(db: Session, query: str, limit: int = 10):
         .limit(limit)
         .all()
     )
+
+def deactivate_user(db: Session, user_id: int) -> bool:
+    """Soft delete a user by setting is_active to False."""
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        return False
+    user.is_active = False
+    db.commit()
+    return True
+
+def get_user(db: Session, user_id: int):
+    return (
+        db.query(models.User)
+        .options(joinedload(models.User.department))
+        .filter(models.User.id == user_id)
+        .first()
+    )
+
+# --- Department CRUD ---
+
+def create_department(db: Session, department: schemas.DepartmentCreate):
+    db_dept = models.Department(name=department.name)
+    db.add(db_dept)
+    db.commit()
+    db.refresh(db_dept)
+    return db_dept
+
+
+def update_department(db: Session, dept_id: int, department: schemas.DepartmentCreate):
+    db_dept = db.query(models.Department).filter(models.Department.id == dept_id).first()
+    if not db_dept:
+        return None
+    db_dept.name = department.name
+    db.commit()
+    db.refresh(db_dept)
+    return db_dept
+
+
+def delete_department(db: Session, dept_id: int) -> bool:
+    db_dept = db.query(models.Department).filter(models.Department.id == dept_id).first()
+    if not db_dept:
+        return False
+    db.delete(db_dept)
+    db.commit()
+    return True
 
 # --- Post CRUD ---
 
@@ -103,3 +149,25 @@ def get_posts_mentioned(db: Session, user_id: int, skip: int = 0, limit: int = 1
         if post.created_at and post.created_at.tzinfo is None:
             post.created_at = post.created_at.replace(tzinfo=timezone.utc)
     return posts
+
+
+def get_all_posts(db: Session):
+    posts = (
+        db.query(models.Post)
+        .options(joinedload(models.Post.author).joinedload(models.User.department))
+        .order_by(models.Post.created_at.desc())
+        .all()
+    )
+    for post in posts:
+        if post.created_at and post.created_at.tzinfo is None:
+            post.created_at = post.created_at.replace(tzinfo=timezone.utc)
+    return posts
+
+
+def delete_post(db: Session, post_id: int) -> bool:
+    post = db.query(models.Post).filter(models.Post.id == post_id).first()
+    if not post:
+        return False
+    db.delete(post)
+    db.commit()
+    return True

@@ -67,6 +67,7 @@ class User(UserBase):
     id: int
     department_name: Optional[str] = None
     is_admin: bool = False
+    is_active: bool = True
 
     class Config:
         from_attributes = True
@@ -77,6 +78,36 @@ class UserSearchResult(BaseModel):
 
     id: int
     name: str
+    department_name: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+# --- Department Schemas ---
+
+class DepartmentBase(BaseModel):
+    name: str
+
+
+class DepartmentCreate(DepartmentBase):
+    pass
+
+
+class Department(DepartmentBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+
+
+# --- Admin Post Schema ---
+
+class AdminPost(BaseModel):
+    id: int
+    content: str
+    created_at: datetime
+    author_name: str
     department_name: Optional[str] = None
 
     class Config:
