@@ -23,6 +23,7 @@ def list_posts(
                 created_at=p.created_at,
                 author_name=p.author.name if p.author else None,
                 department_name=p.author.department.name if p.author and p.author.department else None,
+                mention_user_ids=p.mention_user_ids,
             )
         )
     return result

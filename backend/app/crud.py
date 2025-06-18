@@ -78,6 +78,11 @@ def create_department(db: Session, department: schemas.DepartmentCreate):
     return db_dept
 
 
+def get_departments(db: Session):
+    """Retrieve all departments."""
+    return db.query(models.Department).order_by(models.Department.id).all()
+
+
 def update_department(db: Session, dept_id: int, department: schemas.DepartmentCreate):
     db_dept = db.query(models.Department).filter(models.Department.id == dept_id).first()
     if not db_dept:
@@ -154,7 +159,10 @@ def get_posts_mentioned(db: Session, user_id: int, skip: int = 0, limit: int = 1
 def get_all_posts(db: Session):
     posts = (
         db.query(models.Post)
-        .options(joinedload(models.Post.author).joinedload(models.User.department))
+        .options(
+            joinedload(models.Post.author).joinedload(models.User.department),
+            joinedload(models.Post.mentions),
+        )
         .order_by(models.Post.created_at.desc())
         .all()
     )

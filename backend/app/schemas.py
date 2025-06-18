@@ -109,6 +109,7 @@ class AdminPost(BaseModel):
     created_at: datetime
     author_name: str
     department_name: Optional[str] = None
+    mention_user_ids: list[int] = []
 
     class Config:
         from_attributes = True

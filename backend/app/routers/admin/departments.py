@@ -8,6 +8,15 @@ from ...dependencies import get_db, require_admin
 router = APIRouter(prefix="/admin/departments", tags=["admin"])
 
 
+@router.get("/", response_model=list[schemas.Department])
+def list_departments(
+    db: Session = Depends(get_db),
+    _: schemas.User = Depends(require_admin),
+):
+    """Return all departments."""
+    return crud.get_departments(db)
+
+
 @router.post("/", response_model=schemas.Department, status_code=status.HTTP_201_CREATED)
 def create_department(
     department: schemas.DepartmentCreate,
