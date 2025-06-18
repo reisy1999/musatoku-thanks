@@ -11,6 +11,7 @@ from .database import SessionLocal, engine, Base
 from .routers.admin import users as admin_users
 from .routers.admin import departments as admin_departments
 from .routers.admin import posts as admin_posts
+from .routers.admin import reports as admin_reports
 
 # Configure basic logging
 logging.basicConfig(
@@ -197,7 +198,26 @@ def read_mentioned_posts(
     posts = crud.get_posts_mentioned(db, user_id=current_user.id)
     return posts
 
+
+@app.post("/reports", response_model=schemas.ReportOut, status_code=status.HTTP_201_CREATED)
+def create_report(
+    report: schemas.ReportCreate,
+    db: Session = Depends(get_db),
+    current_user: schemas.User = Depends(get_current_user),
+):
+    created = crud.create_report(db, report, reporter_id=current_user.id)
+    return schemas.ReportOut(
+        id=created.id,
+        reported_post_id=created.reported_post_id,
+        reporter_user_id=created.reporter_user_id,
+        reason=created.reason,
+        reported_at=created.reported_at,
+        reporter_name=created.reporter.name if created.reporter else None,
+        post_content=created.reported_post.content if created.reported_post else None,
+    )
+
 # include routers
 app.include_router(admin_users.router)
 app.include_router(admin_departments.router)
 app.include_router(admin_posts.router)
+app.include_router(admin_reports.router)

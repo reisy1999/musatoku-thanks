@@ -179,3 +179,35 @@ def delete_post(db: Session, post_id: int) -> bool:
     db.delete(post)
     db.commit()
     return True
+
+
+# --- Report CRUD ---
+
+def create_report(db: Session, report: schemas.ReportCreate, reporter_id: int):
+    db_report = models.Report(
+        reported_post_id=report.reported_post_id,
+        reporter_user_id=reporter_id,
+        reason=report.reason,
+    )
+    db.add(db_report)
+    db.commit()
+    db.refresh(db_report)
+    if db_report.reported_at and db_report.reported_at.tzinfo is None:
+        db_report.reported_at = db_report.reported_at.replace(tzinfo=timezone.utc)
+    return db_report
+
+
+def get_reports(db: Session):
+    reports = (
+        db.query(models.Report)
+        .options(
+            joinedload(models.Report.reporter).joinedload(models.User.department),
+            joinedload(models.Report.reported_post).joinedload(models.Post.author),
+        )
+        .order_by(models.Report.reported_at.desc())
+        .all()
+    )
+    for r in reports:
+        if r.reported_at and r.reported_at.tzinfo is None:
+            r.reported_at = r.reported_at.replace(tzinfo=timezone.utc)
+    return reports

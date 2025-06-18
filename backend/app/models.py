@@ -79,3 +79,19 @@ class Post(Base):
     @property
     def mention_user_ids(self) -> list[int]:
         return [user.id for user in self.mentions]
+
+
+class Report(Base):
+    __tablename__ = "reports"
+
+    id = Column(Integer, primary_key=True, index=True)
+    reported_post_id = Column(Integer, ForeignKey("posts.id"), nullable=False)
+    reporter_user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    reason = Column(String(255))
+    reported_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+    )
+
+    reported_post = relationship("Post")
+    reporter = relationship("User")
