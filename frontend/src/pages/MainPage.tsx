@@ -6,9 +6,13 @@ import CreatePostModal from '../components/ui/CreatePostModal';
 // 親コンポーネント(App.tsx)から受け取る関数の型を定義
 type MainPageProps = {
   onLogout: () => void;
+  isAdmin: boolean;
 };
 
-const MainPage: React.FC<MainPageProps> = ({ onLogout }) => {
+import { useNavigate } from 'react-router-dom';
+
+const MainPage: React.FC<MainPageProps> = ({ onLogout, isAdmin }) => {
+  const navigate = useNavigate();
   // 投稿作成モーダルの表示状態を管理します
   const [isModalOpen, setIsModalOpen] = useState(false);
   
@@ -83,7 +87,7 @@ const MainPage: React.FC<MainPageProps> = ({ onLogout }) => {
 
       {/* --- 投稿作成ボタン --- */}
       <div className="fixed bottom-8 right-8">
-        <button 
+        <button
           onClick={() => setIsModalOpen(true)}
           className="bg-blue-600 text-white rounded-full p-4 shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
         >
@@ -92,6 +96,30 @@ const MainPage: React.FC<MainPageProps> = ({ onLogout }) => {
           </svg>
         </button>
       </div>
+
+      {isAdmin && (
+        <div className="fixed bottom-20 right-8">
+          <button
+            onClick={() => navigate('/admin')}
+            className="bg-gray-700 text-white rounded-full p-3 shadow-lg hover:bg-gray-800 focus:outline-none"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              className="h-6 w-6"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8c-1.657 0-3 1.343-3 3s1.343 3 3 3 3-1.343 3-3-1.343-3-3-3zm0 9.5a6.5 6.5 0 110-13 6.5 6.5 0 010 13z"
+              />
+            </svg>
+          </button>
+        </div>
+      )}
 
       {/* --- 投稿作成モーダル --- */}
       {isModalOpen && (
