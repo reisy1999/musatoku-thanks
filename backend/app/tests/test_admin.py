@@ -41,8 +41,18 @@ def test_admin_list_and_delete_posts():
         token = _get_admin_token(client)
         db = SessionLocal()
         user = crud.get_user_by_employee_id(db, "000000")
-        p1 = crud.create_post(db, schemas.PostCreate(content="admin post 1"), user.id)
-        p2 = crud.create_post(db, schemas.PostCreate(content="admin post 2"), user.id)
+        user_id = user.id
+        user_name = user.name
+        p1 = crud.create_post(
+            db,
+            schemas.PostCreate(content="admin post 1", mention_user_ids=[user_id]),
+            user_id,
+        )
+        p2 = crud.create_post(
+            db,
+            schemas.PostCreate(content="admin post 2", mention_user_ids=[user_id]),
+            user_id,
+        )
         p1_id = p1.id
         db.close()
 
@@ -50,6 +60,8 @@ def test_admin_list_and_delete_posts():
         assert resp.status_code == 200
         posts = resp.json()
         assert posts[0]["created_at"] >= posts[1]["created_at"]
+        assert posts[0]["author_name"] == user_name
+        assert user_id in posts[0]["mention_user_ids"]
 
         del_resp = client.delete(f"/admin/posts/{p1_id}", headers={"Authorization": f"Bearer {token}"})
         assert del_resp.status_code == 204
@@ -57,3 +69,13 @@ def test_admin_list_and_delete_posts():
         db = SessionLocal()
         assert db.query(models.Post).get(p1_id) is None
         db.close()
+
+
+def test_admin_list_departments():
+    with TestClient(app) as client:
+        token = _get_admin_token(client)
+
+        resp = client.get("/admin/departments", headers={"Authorization": f"Bearer {token}"})
+        assert resp.status_code == 200
+        depts = resp.json()
+        assert any(d["name"] == "テスト部署" for d in depts)
