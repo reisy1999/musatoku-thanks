@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Table, Boo
 from sqlalchemy.orm import relationship
 import enum
 from datetime import datetime, timezone
+import jaconv
 
 # No.7で作成したdatabase.pyから、全てのモデルが継承するBaseクラスをインポートします
 from .database import Base
@@ -143,7 +144,13 @@ class Post(Base):
 
     @property
     def mention_department_names(self) -> list[str]:
-        return [dept.name for dept in self.mention_departments]
+        names = []
+        for dept in self.mention_departments:
+            if dept and dept.name:
+                names.append(
+                    jaconv.z2h(dept.name, kana=True, ascii=False, digit=False)
+                )
+        return names
 
     @property
     def like_count(self) -> int:

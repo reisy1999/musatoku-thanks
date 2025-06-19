@@ -4,6 +4,8 @@ import apiClient from '../../services/api';
 interface Post {
   id: number;
   content: string;
+  mention_user_names?: string[];
+  mention_department_names?: string[];
 }
 
 type ReportModalProps = {
@@ -64,6 +66,13 @@ const ReportModal: React.FC<ReportModalProps> = ({ post, onClose }) => {
         </div>
         <div className="mb-4 p-3 bg-gray-100 rounded text-sm whitespace-pre-wrap">
           {post.content}
+          {(post.mention_user_names?.length || 0) +
+            (post.mention_department_names?.length || 0) > 0 && (
+            <div className="mt-2 text-gray-500 text-xs">
+              {post.mention_user_names?.map((n) => `@${n}`).join(' ')}{' '}
+              {post.mention_department_names?.map((n) => `@${n}`).join(' ')}
+            </div>
+          )}
         </div>
         <form onSubmit={handleSubmit}>
           <textarea

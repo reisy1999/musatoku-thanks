@@ -107,6 +107,13 @@ class UserSearchResult(BaseModel):
 class DepartmentBase(BaseModel):
     name: str
 
+    @field_validator("name", mode="before")
+    @classmethod
+    def normalize_name(cls, v: str) -> str:
+        if v is None:
+            return v
+        return jaconv.z2h(v, kana=True, ascii=False, digit=False)
+
 
 class DepartmentCreate(DepartmentBase):
     pass

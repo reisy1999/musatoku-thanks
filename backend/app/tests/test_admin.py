@@ -2,6 +2,7 @@ from fastapi.testclient import TestClient
 from ..main import app
 from ..database import SessionLocal
 from .. import crud, schemas, models
+import jaconv
 import uuid
 
 
@@ -74,7 +75,9 @@ def test_admin_list_and_delete_posts():
         assert user_id in posts[0]["mention_user_ids"]
         assert dept_id in posts[0]["mention_department_ids"]
         assert user_name in posts[0]["mention_user_names"]
-        assert posts[0]["mention_department_names"] == [dept_name]
+        assert posts[0]["mention_department_names"] == [
+            jaconv.z2h(dept_name, kana=True, ascii=False, digit=False)
+        ]
 
         del_resp = client.delete(f"/admin/posts/{p1_id}", headers={"Authorization": f"Bearer {token}"})
         assert del_resp.status_code == 204
@@ -91,4 +94,5 @@ def test_admin_list_departments():
         resp = client.get("/admin/departments", headers={"Authorization": f"Bearer {token}"})
         assert resp.status_code == 200
         depts = resp.json()
-        assert any(d["name"] == "テスト部署" for d in depts)
+        expected = jaconv.z2h("テスト部署", kana=True, ascii=False, digit=False)
+        assert any(d["name"] == expected for d in depts)
