@@ -216,16 +216,6 @@ def read_posts(
                 mention_department_ids=p.mention_department_ids,
                 mention_user_names=p.mention_user_names,
                 mention_department_names=p.mention_department_names,
-                mention_users=[
-                    schemas.MentionTarget(
-                        id=u.id, name=u.name if u.is_active else "[削除済み]"
-                    )
-                    for u in p.mentions
-                ],
-                mention_departments=[
-                    schemas.MentionTarget(id=d.id, name=d.name if d else "[削除済み]")
-                    for d in p.mention_departments
-                ],
                 like_count=p.like_count,
                 liked_by_me=current_user.id in [u.id for u in p.likers]
                 if current_user
@@ -260,16 +250,6 @@ def read_mentioned_posts(
                 mention_department_ids=p.mention_department_ids,
                 mention_user_names=p.mention_user_names,
                 mention_department_names=p.mention_department_names,
-                mention_users=[
-                    schemas.MentionTarget(
-                        id=u.id, name=u.name if u.is_active else "[削除済み]"
-                    )
-                    for u in p.mentions
-                ],
-                mention_departments=[
-                    schemas.MentionTarget(id=d.id, name=d.name if d else "[削除済み]")
-                    for d in p.mention_departments
-                ],
                 like_count=p.like_count,
                 liked_by_me=current_user.id in [u.id for u in p.likers],
             )

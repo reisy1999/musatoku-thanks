@@ -27,8 +27,6 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
   const [isComposing, setIsComposing] = useState(false);
   const MAX_CHARS = 140;
 
-  const kanaRegex = /^[\u3041-\u3096\u30A1-\u30FF\uFF66-\uFF9D]+$/;
-
   const normalizeKana = (input: string) =>
     jaconv.toHanKana(jaconv.toKatakana(input));
 
@@ -40,13 +38,6 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
 
     if (!value.trim()) {
       setMentionError('');
-      setNormalizedQuery('');
-      setSearchResults([]);
-      return;
-    }
-
-    if (!kanaRegex.test(value)) {
-      setMentionError('ひらがな or カタカナ で入力してください');
       setNormalizedQuery('');
       setSearchResults([]);
       return;
@@ -207,7 +198,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
                   onKeyDown={handleMentionKeyDown}
                   onCompositionStart={() => setIsComposing(true)}
                   onCompositionEnd={handleCompositionEnd}
-                  placeholder="ひらがな / カタカナ で検索してください"
+                  placeholder="名前で検索してください"
                   className={`w-full p-2 rounded-md text-sm border ${mentionError ? 'border-red-500' : 'border-gray-300'}`}
                 />
               ) : (

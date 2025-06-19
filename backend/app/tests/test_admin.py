@@ -96,3 +96,14 @@ def test_admin_list_departments():
         depts = resp.json()
         expected = jaconv.z2h("テスト部署", kana=True, ascii=False, digit=False)
         assert any(d["name"] == expected for d in depts)
+
+
+def test_delete_department_with_refs():
+    with TestClient(app) as client:
+        token = _get_admin_token(client)
+        resp = client.delete(
+            "/admin/departments/2",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert resp.status_code == 400
+
