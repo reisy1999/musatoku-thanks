@@ -2,6 +2,20 @@ import React, { useEffect, useState } from 'react';
 import apiClient from '../../services/api';
 import ReportCard, { Report } from './ReportCard';
 
+const badgeClass = (status: string) => {
+  const base = 'px-2 py-0.5 rounded text-xs';
+  switch (status) {
+    case 'deleted':
+      return `${base} bg-red-100 text-red-800`;
+    case 'ignored':
+      return `${base} bg-blue-100 text-blue-800`;
+    case 'pending':
+      return `${base} bg-yellow-100 text-yellow-800`;
+    default:
+      return `${base} bg-gray-100 text-gray-800`;
+  }
+};
+
 interface AdminPost {
   id: number;
   content: string;
@@ -10,6 +24,7 @@ interface AdminPost {
   department_name?: string | null;
   mention_user_ids: number[];
   reports: Report[];
+  status: 'pending' | 'deleted' | 'ignored';
 }
 
 type Props = {
@@ -28,28 +43,12 @@ const PostAdminPanel: React.FC<Props> = ({ showDeleted }) => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [postResp, reportResp] = await Promise.all([
-        apiClient.get<AdminPost[]>(endpoint),
-        apiClient.get<any[]>('/admin/reports'),
-      ]);
-      const reportsByPost: Record<number, Report[]> = {};
-      reportResp.data.forEach((r: any) => {
-        if (!reportsByPost[r.reported_post_id]) reportsByPost[r.reported_post_id] = [];
-        reportsByPost[r.reported_post_id].push({
-          id: r.id,
-          reporter_name: r.reporter_name,
-          reason: r.reason,
-          status: r.status,
-        });
-      });
-      const combined = postResp.data.map((p: any) => ({
-        ...p,
-        reports: reportsByPost[p.id] || [],
-      })).sort(
+      const postResp = await apiClient.get<AdminPost[]>(endpoint);
+      const sorted = postResp.data.sort(
         (a, b) =>
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
       );
-      setPosts(combined);
+      setPosts(sorted);
       setError(null);
     } catch (err) {
       console.error(err);
@@ -64,27 +63,24 @@ const PostAdminPanel: React.FC<Props> = ({ showDeleted }) => {
   }, [showDeleted]);
 
   const updateStatus = async (
-    reportId: number,
-    status: 'deleted' | 'ignored',
-    postId: number,
+    post: AdminPost,
+    status: 'pending' | 'deleted' | 'ignored',
   ) => {
-    const confirmMsg =
-      status === 'deleted' ? 'この投稿を削除しますか?' : 'この報告を無視しますか?';
+    const confirmMsg = `ステータスを ${status} に変更しますか?`;
     if (!window.confirm(confirmMsg)) return;
     try {
-      await apiClient.patch(`/admin/reports/${reportId}`, { status });
+      if (post.reports.length === 0) return;
+      await apiClient.patch(`/admin/reports/${post.reports[0].id}`, { status });
       setPosts((prev) => {
-        let next = prev.map((p) => {
-          if (p.id !== postId) return p;
-          const updatedReports = p.reports.map((r) =>
-            r.id === reportId ? { ...r, status } : r,
-          );
-          return { ...p, reports: updatedReports };
-        });
-        if (status === 'deleted' && !showDeleted) {
-          next = next.filter((p) => p.id !== postId);
-        }
-        return next;
+        return prev.map((p) =>
+          p.id === post.id
+            ? {
+                ...p,
+                status,
+                reports: p.reports.map((r) => ({ ...r, status })),
+              }
+            : p,
+        );
       });
     } catch (err) {
       console.error(err);
@@ -121,16 +117,25 @@ const PostAdminPanel: React.FC<Props> = ({ showDeleted }) => {
               <span>{new Date(post.created_at).toLocaleString()}</span>
               <span className="flex items-center space-x-1">
                 <span>
-                {post.author_name}
-                {post.department_name ? ` / ${post.department_name}` : ''}
+                  {post.author_name}
+                  {post.department_name ? ` / ${post.department_name}` : ''}
+                </span>
+                <span className={badgeClass(post.status)}>{post.status}</span>
+                {post.reports.length > 0 && (
+                  <select
+                    className="ml-2 border text-xs"
+                    value={post.status}
+                    onChange={(e) =>
+                      updateStatus(post, e.target.value as 'pending' | 'deleted' | 'ignored')
+                    }
+                  >
+                    <option value="pending">pending</option>
+                    <option value="ignored">ignored</option>
+                    <option value="deleted">deleted</option>
+                  </select>
+                )}
               </span>
-              {post.reports.length > 0 ? (
-                <span className="px-2 py-0.5 rounded bg-red-100 text-red-800 text-xs">Reported</span>
-              ) : (
-                <span className="px-2 py-0.5 rounded bg-gray-100 text-gray-600 text-xs">Unreported</span>
-              )}
-            </span>
-          </div>
+            </div>
           <p className="whitespace-pre-wrap mb-2">{post.content}</p>
           {post.reports.length === 0 ? (
             <p className="text-sm text-gray-500">No reports submitted</p>
@@ -138,12 +143,7 @@ const PostAdminPanel: React.FC<Props> = ({ showDeleted }) => {
             <div>
               {(expanded[post.id] ? post.reports : [post.reports[0]]).map((r) => (
                 <div className="bg-gray-50 p-2 rounded mb-1" key={r.id}>
-                  <ReportCard
-                    report={r}
-                    readOnly={showDeleted}
-                    onDelete={() => updateStatus(r.id, 'deleted', post.id)}
-                    onIgnore={() => updateStatus(r.id, 'ignored', post.id)}
-                  />
+                  <ReportCard report={r} />
                 </div>
               ))}
               {post.reports.length > 1 && (

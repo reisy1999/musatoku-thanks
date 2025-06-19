@@ -102,6 +102,13 @@ class Department(DepartmentBase):
         from_attributes = True
 
 
+# --- Report Schemas ---
+
+class ReportStatus(str, Enum):
+    pending = "pending"
+    deleted = "deleted"
+    ignored = "ignored"
+
 # --- Admin Post Schema ---
 
 class AdminPost(BaseModel):
@@ -112,6 +119,7 @@ class AdminPost(BaseModel):
     department_name: Optional[str] = None
     mention_user_ids: list[int] = []
     reports: list['ReportForPost'] = []
+    status: ReportStatus
 
     class Config:
         from_attributes = True
@@ -130,11 +138,6 @@ class TokenData(BaseModel):
 
 
 # --- Report Schemas ---
-
-class ReportStatus(str, Enum):
-    pending = "pending"
-    deleted = "deleted"
-    ignored = "ignored"
 
 class ReportCreate(BaseModel):
     reported_post_id: int

@@ -48,7 +48,7 @@ def update_report(
     db: Session = Depends(get_db),
     _: schemas.User = Depends(require_admin),
 ):
-    updated = crud.update_report_status(db, report_id, models.Report.Status(body.status))
+    updated = crud.update_report_status(db, report_id, models.ReportStatus(body.status))
     if not updated:
         raise HTTPException(status_code=404, detail="Report not found")
     return schemas.AdminReport(
