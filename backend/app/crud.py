@@ -50,7 +50,10 @@ def search_users(db: Session, query: str, limit: int = 10):
     return (
         db.query(models.User)
         .options(joinedload(models.User.department))
-        .filter(models.User.name.like(f"%{query}%"))
+        .filter(
+            models.User.name.like(f"%{query}%"),
+            models.User.is_active == True,
+        )
         .limit(limit)
         .all()
     )
