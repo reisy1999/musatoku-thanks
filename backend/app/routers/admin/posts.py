@@ -18,6 +18,7 @@ def list_posts(
     for p in posts:
         reports = [
             schemas.ReportForPost(
+                id=r.id,
                 reporter_name=r.reporter.name if r.reporter else None,
                 reason=r.reason,
                 status=r.status.value,
@@ -49,6 +50,7 @@ def list_deleted_posts(
     for p in posts:
         reports = [
             schemas.ReportForPost(
+                id=r.id,
                 reporter_name=r.reporter.name if r.reporter else None,
                 reason=r.reason,
                 status=r.status.value,
