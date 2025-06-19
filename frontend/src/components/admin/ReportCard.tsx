@@ -21,6 +21,8 @@ const badgeClass = (status: string) => {
       return `${base} bg-red-100 text-red-800`;
     case 'ignored':
       return `${base} bg-blue-100 text-blue-800`;
+    case 'pending':
+      return `${base} bg-yellow-100 text-yellow-800`;
     default:
       return `${base} bg-gray-100 text-gray-800`;
   }
@@ -29,9 +31,12 @@ const badgeClass = (status: string) => {
 const ReportCard: React.FC<Props> = ({ report, onDelete, onIgnore, readOnly }) => {
   return (
     <div className="text-sm space-y-1">
-      <div className="flex justify-between items-center">
-        <div>
-          {report.reporter_name ?? 'Unknown'}: {report.reason}
+      <div className="flex justify-between items-start">
+        <div className="max-h-24 overflow-y-auto whitespace-pre-wrap mr-2">
+          <span className="font-semibold">
+            {report.reporter_name ?? 'Unknown'}:
+          </span>{' '}
+          {report.reason}
         </div>
         <span className={badgeClass(report.status)}>{report.status}</span>
       </div>
