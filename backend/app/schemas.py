@@ -1,4 +1,5 @@
 from pydantic import BaseModel, constr, field_validator
+from enum import Enum
 import jaconv
 from datetime import datetime
 from typing import Optional
@@ -110,6 +111,7 @@ class AdminPost(BaseModel):
     author_name: str
     department_name: Optional[str] = None
     mention_user_ids: list[int] = []
+    reports: list['ReportForPost'] = []
 
     class Config:
         from_attributes = True
@@ -129,6 +131,11 @@ class TokenData(BaseModel):
 
 # --- Report Schemas ---
 
+class ReportStatus(str, Enum):
+    pending = "pending"
+    deleted = "deleted"
+    ignored = "ignored"
+
 class ReportCreate(BaseModel):
     reported_post_id: int
     reason: constr(max_length=255)
@@ -142,6 +149,7 @@ class ReportOut(BaseModel):
     reported_at: datetime
     reporter_name: Optional[str] = None
     post_content: Optional[str] = None
+    status: ReportStatus
 
     class Config:
         from_attributes = True
@@ -158,6 +166,20 @@ class AdminReport(BaseModel):
     post_author_id: Optional[int] = None
     post_author_name: Optional[str] = None
     post_created_at: Optional[datetime] = None
+    status: ReportStatus
+
+    class Config:
+        from_attributes = True
+
+
+class ReportStatusUpdate(BaseModel):
+    status: ReportStatus
+
+
+class ReportForPost(BaseModel):
+    reporter_name: Optional[str] = None
+    reason: str
+    status: ReportStatus
 
     class Config:
         from_attributes = True

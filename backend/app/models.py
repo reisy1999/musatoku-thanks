@@ -1,5 +1,6 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Table, Boolean
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Table, Boolean, Enum
 from sqlalchemy.orm import relationship
+import enum
 from datetime import datetime, timezone
 
 # No.7で作成したdatabase.pyから、全てのモデルが継承するBaseクラスをインポートします
@@ -69,12 +70,18 @@ class Post(Base):
     # これにより、投稿から投稿主の情報を簡単に取得できるようになります
     author = relationship("User", back_populates="posts")
 
+    # Reports made against this post
+    reports = relationship("Report", back_populates="reported_post")
+
     # Users mentioned in this post
     mentions = relationship(
         "User",
         secondary=post_mentions,
         back_populates="mentioned_in",
     )
+
+    # Soft deletion flag
+    is_deleted = Column(Boolean, default=False)
 
     @property
     def mention_user_ids(self) -> list[int]:
@@ -93,5 +100,12 @@ class Report(Base):
         default=lambda: datetime.now(timezone.utc),
     )
 
-    reported_post = relationship("Post")
+    class Status(enum.Enum):
+        pending = "pending"
+        deleted = "deleted"
+        ignored = "ignored"
+
+    status = Column(Enum(Status), default=Status.pending, nullable=False)
+
+    reported_post = relationship("Post", back_populates="reports")
     reporter = relationship("User")
