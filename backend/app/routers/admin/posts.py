@@ -33,6 +33,9 @@ def list_posts(
                 author_name=p.author.name if p.author else None,
                 department_name=p.author.department.name if p.author and p.author.department else None,
                 mention_user_ids=p.mention_user_ids,
+                mention_department_ids=p.mention_department_ids,
+                mention_user_names=p.mention_user_names,
+                mention_department_names=p.mention_department_names,
                 reports=reports,
                 status=p.report_status,
             )
@@ -65,6 +68,9 @@ def list_deleted_posts(
                 author_name=p.author.name if p.author else None,
                 department_name=p.author.department.name if p.author and p.author.department else None,
                 mention_user_ids=p.mention_user_ids,
+                mention_department_ids=p.mention_department_ids,
+                mention_user_names=p.mention_user_names,
+                mention_department_names=p.mention_department_names,
                 reports=reports,
                 status=p.report_status,
             )

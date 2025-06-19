@@ -214,6 +214,8 @@ def read_posts(
                 created_at=p.created_at,
                 mention_user_ids=p.mention_user_ids,
                 mention_department_ids=p.mention_department_ids,
+                mention_user_names=p.mention_user_names,
+                mention_department_names=p.mention_department_names,
                 mention_users=[
                     schemas.MentionTarget(
                         id=u.id, name=u.name if u.is_active else "[削除済み]"
@@ -256,6 +258,8 @@ def read_mentioned_posts(
                 created_at=p.created_at,
                 mention_user_ids=p.mention_user_ids,
                 mention_department_ids=p.mention_department_ids,
+                mention_user_names=p.mention_user_names,
+                mention_department_names=p.mention_department_names,
                 mention_users=[
                     schemas.MentionTarget(
                         id=u.id, name=u.name if u.is_active else "[削除済み]"
