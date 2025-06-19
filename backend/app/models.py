@@ -20,6 +20,14 @@ post_mentions = Table(
     Column("user_id", ForeignKey("users.id"), primary_key=True),
 )
 
+# Association table for Post department mentions
+post_department_mentions = Table(
+    "post_department_mentions",
+    Base.metadata,
+    Column("post_id", ForeignKey("posts.id"), primary_key=True),
+    Column("department_id", ForeignKey("departments.id"), primary_key=True),
+)
+
 
 class Department(Base):
     __tablename__ = "departments"
@@ -86,6 +94,12 @@ class Post(Base):
         back_populates="mentioned_in",
     )
 
+    # Departments mentioned in this post
+    mention_departments = relationship(
+        "Department",
+        secondary=post_department_mentions,
+    )
+
     # Soft deletion flag
     is_deleted = Column(Boolean, default=False)
 
@@ -97,6 +111,10 @@ class Post(Base):
     @property
     def mention_user_ids(self) -> list[int]:
         return [user.id for user in self.mentions]
+
+    @property
+    def mention_department_ids(self) -> list[int]:
+        return [dept.id for dept in self.mention_departments]
 
 
 class Report(Base):

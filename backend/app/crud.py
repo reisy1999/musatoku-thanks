@@ -114,7 +114,7 @@ def get_posts(db: Session, skip: int = 0, limit: int = 100):
     """
     posts = (
         db.query(models.Post)
-        .options(joinedload(models.Post.mentions))
+        .options(joinedload(models.Post.mentions), joinedload(models.Post.mention_departments))
         .filter(models.Post.is_deleted == False)
         .order_by(models.Post.created_at.desc())
         .offset(skip)
@@ -138,6 +138,12 @@ def create_post(db: Session, post: schemas.PostCreate, user_id: int):
         )
         for uid, in dept_user_rows:
             mentioned_ids.add(uid)
+        departments = (
+            db.query(models.Department)
+            .filter(models.Department.id.in_(post.mention_department_ids))
+            .all()
+        )
+        db_post.mention_departments.extend(departments)
 
     if mentioned_ids:
         mentioned_users = (
@@ -158,7 +164,7 @@ def get_posts_mentioned(db: Session, user_id: int, skip: int = 0, limit: int = 1
     posts = (
         db.query(models.Post)
         .join(models.post_mentions)
-        .options(joinedload(models.Post.mentions))
+        .options(joinedload(models.Post.mentions), joinedload(models.Post.mention_departments))
         .filter(models.post_mentions.c.user_id == user_id)
         .filter(models.Post.is_deleted == False)
         .order_by(models.Post.created_at.desc())
@@ -178,6 +184,7 @@ def get_all_posts(db: Session):
         .options(
             joinedload(models.Post.author).joinedload(models.User.department),
             joinedload(models.Post.mentions),
+            joinedload(models.Post.mention_departments),
             joinedload(models.Post.reports).joinedload(models.Report.reporter),
         )
         .filter(models.Post.is_deleted == False)
@@ -196,6 +203,7 @@ def get_reported_posts(db: Session):
         .options(
             joinedload(models.Post.author).joinedload(models.User.department),
             joinedload(models.Post.mentions),
+            joinedload(models.Post.mention_departments),
             joinedload(models.Post.reports).joinedload(models.Report.reporter),
         )
         .filter(models.Post.is_deleted == False)
@@ -215,6 +223,7 @@ def get_deleted_posts(db: Session):
         .options(
             joinedload(models.Post.author).joinedload(models.User.department),
             joinedload(models.Post.mentions),
+            joinedload(models.Post.mention_departments),
             joinedload(models.Post.reports).joinedload(models.Report.reporter),
         )
         .filter(models.Post.is_deleted == True)

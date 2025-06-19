@@ -4,6 +4,8 @@ interface Post {
   id: number;
   content: string;
   created_at: string;
+  mention_users?: { id: number; name: string | null }[];
+  mention_departments?: { id: number; name: string | null }[];
 }
 
 type PostCardProps = {
@@ -33,9 +35,15 @@ const PostCard: React.FC<PostCardProps> = ({ post, onReport }) => {
   return (
     <div className="p-4 border-b border-gray-200 hover:bg-gray-50 relative">
       <div className="flex justify-between items-center mb-2">
-        <span className="text-sm text-gray-500">
-          {formatRelativeTime(post.created_at)}
-        </span>
+        <div className="flex items-center gap-2 text-sm text-gray-500">
+          <span>{formatRelativeTime(post.created_at)}</span>
+          {(post.mention_users?.length || 0) + (post.mention_departments?.length || 0) > 0 && (
+            <span className="text-xs text-gray-500">
+              {post.mention_users?.map((u) => `@${u.name ?? '[削除済み]'}`).join(' ')}{' '}
+              {post.mention_departments?.map((d) => `@${d.name ?? '[削除済み]'}`).join(' ')}
+            </span>
+          )}
+        </div>
         <div className="relative">
           <button
             onClick={() => setMenuOpen((o) => !o)}
