@@ -129,10 +129,20 @@ def get_posts(db: Session, skip: int = 0, limit: int = 100):
 def create_post(db: Session, post: schemas.PostCreate, user_id: int):
     """投稿を新規作成します。"""
     db_post = models.Post(content=post.content, author_id=user_id)
-    if post.mention_user_ids:
+    mentioned_ids: set[int] = set(post.mention_user_ids or [])
+    if getattr(post, "mention_department_ids", None):
+        dept_user_rows = (
+            db.query(models.User.id)
+            .filter(models.User.department_id.in_(post.mention_department_ids))
+            .all()
+        )
+        for uid, in dept_user_rows:
+            mentioned_ids.add(uid)
+
+    if mentioned_ids:
         mentioned_users = (
             db.query(models.User)
-            .filter(models.User.id.in_(post.mention_user_ids))
+            .filter(models.User.id.in_(mentioned_ids))
             .all()
         )
         db_post.mentions.extend(mentioned_users)

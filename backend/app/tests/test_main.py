@@ -182,3 +182,57 @@ def test_user_search_endpoint():
             db.delete(db.query(models.User).get(user.id))
         db.commit()
         db.close()
+
+
+def test_post_department_mentions():
+    """department mentions expand to user mentions"""
+    with TestClient(app) as client:
+        token_resp = client.post(
+            "/token",
+            data={"username": "000000", "password": "pass"},
+        )
+        assert token_resp.status_code == 200
+        token = token_resp.json()["access_token"]
+
+        headers = {"Authorization": f"Bearer {token}"}
+
+        db = SessionLocal()
+        user_dept2 = crud.get_user_by_employee_id(db, "000001")
+        user_dept3 = crud.get_user_by_employee_id(db, "000002")
+        db.close()
+
+        resp = client.post(
+            "/posts/",
+            json={"content": "dept mention", "mention_department_ids": [user_dept2.department_id]},
+            headers=headers,
+        )
+        assert resp.status_code == 201
+        ids = resp.json()["mention_user_ids"]
+        assert user_dept2.id in ids
+        assert user_dept3.id not in ids
+
+        resp2 = client.post(
+            "/posts/",
+            json={"content": "multi dept", "mention_department_ids": [user_dept2.department_id, user_dept3.department_id]},
+            headers=headers,
+        )
+        assert resp2.status_code == 201
+        ids2 = resp2.json()["mention_user_ids"]
+        assert user_dept2.id in ids2 and user_dept3.id in ids2
+
+        resp3 = client.post(
+            "/posts/",
+            json={"content": "dedupe", "mention_user_ids": [user_dept2.id], "mention_department_ids": [user_dept2.department_id]},
+            headers=headers,
+        )
+        assert resp3.status_code == 201
+        ids3 = resp3.json()["mention_user_ids"]
+        assert ids3.count(user_dept2.id) == 1
+
+        resp_invalid = client.post(
+            "/posts/",
+            json={"content": "invalid", "mention_department_ids": [9999]},
+            headers=headers,
+        )
+        assert resp_invalid.status_code == 201
+        assert resp_invalid.json()["mention_user_ids"] == []

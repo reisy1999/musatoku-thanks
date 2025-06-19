@@ -15,6 +15,8 @@ class PostBase(BaseModel):
 class PostCreate(PostBase):
     # IDs of users mentioned in this post
     mention_user_ids: list[int] = []
+    # IDs of departments whose members are mentioned
+    mention_department_ids: list[int] = []
 
 # フロントエンドに返す投稿のデータ型
 class Post(PostBase):
