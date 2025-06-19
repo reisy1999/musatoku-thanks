@@ -180,6 +180,25 @@ def get_all_posts(db: Session):
     return posts
 
 
+def get_reported_posts(db: Session):
+    posts = (
+        db.query(models.Post)
+        .options(
+            joinedload(models.Post.author).joinedload(models.User.department),
+            joinedload(models.Post.mentions),
+            joinedload(models.Post.reports).joinedload(models.Report.reporter),
+        )
+        .filter(models.Post.is_deleted == False)
+        .filter(models.Post.reports.any())
+        .order_by(models.Post.created_at.desc())
+        .all()
+    )
+    for post in posts:
+        if post.created_at and post.created_at.tzinfo is None:
+            post.created_at = post.created_at.replace(tzinfo=timezone.utc)
+    return posts
+
+
 def get_deleted_posts(db: Session):
     posts = (
         db.query(models.Post)

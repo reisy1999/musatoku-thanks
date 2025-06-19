@@ -7,35 +7,35 @@ from ...dependencies import get_db, require_admin
 router = APIRouter(prefix="/admin/reports", tags=["admin"])
 
 
-@router.get("/", response_model=list[schemas.AdminReport])
+@router.get("/", response_model=list[schemas.AdminPost])
 def list_reports(
     db: Session = Depends(get_db),
     _: schemas.User = Depends(require_admin),
 ):
-    reports = crud.get_reports(db)
+    posts = crud.get_reported_posts(db)
     result = []
-    for r in reports:
-        result.append(
-            schemas.AdminReport(
+    for p in posts:
+        reports = [
+            schemas.ReportForPost(
                 id=r.id,
-                reported_post_id=r.reported_post_id,
-                reporter_user_id=r.reporter_user_id,
                 reporter_name=r.reporter.name if r.reporter else None,
                 reason=r.reason,
-                reported_at=r.reported_at,
                 status=r.status.value,
-                post_content=r.reported_post.content if r.reported_post else None,
-                post_author_id=(
-                    r.reported_post.author.id
-                    if r.reported_post and r.reported_post.author
-                    else None
+            )
+            for r in p.reports
+        ]
+        result.append(
+            schemas.AdminPost(
+                id=p.id,
+                content=p.content,
+                created_at=p.created_at,
+                author_name=p.author.name if p.author else None,
+                department_name=(
+                    p.author.department.name if p.author and p.author.department else None
                 ),
-                post_author_name=(
-                    r.reported_post.author.name
-                    if r.reported_post and r.reported_post.author
-                    else None
-                ),
-                post_created_at=r.reported_post.created_at if r.reported_post else None,
+                mention_user_ids=p.mention_user_ids,
+                reports=reports,
+                status=p.report_status,
             )
         )
     return result

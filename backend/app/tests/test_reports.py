@@ -30,12 +30,11 @@ def test_report_flow():
         headers_admin = {"Authorization": f"Bearer {admin_token}"}
         list_resp = client.get("/admin/reports", headers=headers_admin)
         assert list_resp.status_code == 200
-        reports = list_resp.json()
-        target = next(r for r in reports if r["id"] == report_id)
-        assert target["post_content"] == "report target"
-        assert target["post_author_id"] is not None
-        assert target.get("post_author_name")
-        assert target.get("post_created_at")
+        posts = list_resp.json()
+        target = next(p for p in posts if p["id"] == post_id)
+        assert any(r["id"] == report_id for r in target["reports"])
+        assert target["author_name"]
+        assert target.get("created_at")
         assert target["status"] == "pending"
 
         # admin updates status to deleted
