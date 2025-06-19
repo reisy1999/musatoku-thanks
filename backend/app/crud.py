@@ -1,6 +1,10 @@
+import logging
 from sqlalchemy.orm import Session, joinedload
+from .models import Report, Post
 from datetime import timezone
 from . import models, schemas, auth
+
+logger = logging.getLogger(__name__)
 
 # --- User CRUD ---
 
@@ -111,6 +115,7 @@ def get_posts(db: Session, skip: int = 0, limit: int = 100):
     posts = (
         db.query(models.Post)
         .options(joinedload(models.Post.mentions))
+        .filter(models.Post.is_deleted == False)
         .order_by(models.Post.created_at.desc())
         .offset(skip)
         .limit(limit)
@@ -145,6 +150,7 @@ def get_posts_mentioned(db: Session, user_id: int, skip: int = 0, limit: int = 1
         .join(models.post_mentions)
         .options(joinedload(models.Post.mentions))
         .filter(models.post_mentions.c.user_id == user_id)
+        .filter(models.Post.is_deleted == False)
         .order_by(models.Post.created_at.desc())
         .offset(skip)
         .limit(limit)
@@ -162,7 +168,27 @@ def get_all_posts(db: Session):
         .options(
             joinedload(models.Post.author).joinedload(models.User.department),
             joinedload(models.Post.mentions),
+            joinedload(models.Post.reports).joinedload(models.Report.reporter),
         )
+        .filter(models.Post.is_deleted == False)
+        .order_by(models.Post.created_at.desc())
+        .all()
+    )
+    for post in posts:
+        if post.created_at and post.created_at.tzinfo is None:
+            post.created_at = post.created_at.replace(tzinfo=timezone.utc)
+    return posts
+
+
+def get_deleted_posts(db: Session):
+    posts = (
+        db.query(models.Post)
+        .options(
+            joinedload(models.Post.author).joinedload(models.User.department),
+            joinedload(models.Post.mentions),
+            joinedload(models.Post.reports).joinedload(models.Report.reporter),
+        )
+        .filter(models.Post.is_deleted == True)
         .order_by(models.Post.created_at.desc())
         .all()
     )
@@ -211,3 +237,16 @@ def get_reports(db: Session):
         if r.reported_at and r.reported_at.tzinfo is None:
             r.reported_at = r.reported_at.replace(tzinfo=timezone.utc)
     return reports
+
+
+def update_report_status(db: Session, report_id: int, status: models.Report.Status):
+    report = db.query(models.Report).filter(models.Report.id == report_id).first()
+    if not report:
+        return None
+    logger.info("Updating report %s status to %s", report_id, status.value)
+    report.status = status
+    if status == models.Report.Status.deleted and report.reported_post:
+        report.reported_post.is_deleted = True
+    db.commit()
+    db.refresh(report)
+    return report

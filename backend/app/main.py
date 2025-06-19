@@ -214,6 +214,7 @@ def create_report(
         reported_at=created.reported_at,
         reporter_name=created.reporter.name if created.reporter else None,
         post_content=created.reported_post.content if created.reported_post else None,
+        status=created.status.value,
     )
 
 # include routers

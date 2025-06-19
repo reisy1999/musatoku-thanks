@@ -36,3 +36,23 @@ def test_report_flow():
         assert target["post_author_id"] is not None
         assert target.get("post_author_name")
         assert target.get("post_created_at")
+        assert target["status"] == "pending"
+
+        # admin updates status to deleted
+        patch_resp = client.patch(
+            f"/admin/reports/{report_id}",
+            json={"status": "deleted"},
+            headers=headers_admin,
+        )
+        assert patch_resp.status_code == 200
+        assert patch_resp.json()["status"] == "deleted"
+
+        # deleted posts endpoint should list the post
+        deleted_list = client.get("/admin/posts/deleted", headers=headers_admin)
+        assert any(p["id"] == post_id for p in deleted_list.json())
+
+        # regular posts should not include the deleted post
+        normal_admin = client.get("/admin/posts", headers=headers_admin)
+        assert all(p["id"] != post_id for p in normal_admin.json())
+        public_posts = client.get("/posts/")
+        assert all(p["id"] != post_id for p in public_posts.json())
