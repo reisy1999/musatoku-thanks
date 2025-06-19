@@ -5,7 +5,9 @@ import PostAdminPanel from '../components/admin/PostAdminPanel';
 import ReportAdminPanel from '../components/admin/ReportAdminPanel';
 
 const AdminDashboard: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'users' | 'departments' | 'posts' | 'reports'>('users');
+  const [activeTab, setActiveTab] = useState<
+    'users' | 'departments' | 'posts' | 'deletedPosts' | 'reports'
+  >('users');
 
   const renderActivePanel = () => {
     switch (activeTab) {
@@ -13,6 +15,8 @@ const AdminDashboard: React.FC = () => {
         return <DepartmentAdminPanel />;
       case 'posts':
         return <PostAdminPanel />;
+      case 'deletedPosts':
+        return <PostAdminPanel showDeleted />;
       case 'reports':
         return <ReportAdminPanel />;
       case 'users':
@@ -55,6 +59,16 @@ const AdminDashboard: React.FC = () => {
             }`}
           >
             Posts
+          </button>
+          <button
+            onClick={() => setActiveTab('deletedPosts')}
+            className={`py-2 px-4 font-semibold focus:outline-none ${
+              activeTab === 'deletedPosts'
+                ? 'border-b-2 border-blue-500 text-blue-600'
+                : 'text-gray-500'
+            }`}
+          >
+            Deleted Posts
           </button>
           <button
             onClick={() => setActiveTab('reports')}
