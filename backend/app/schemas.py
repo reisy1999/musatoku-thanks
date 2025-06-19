@@ -180,6 +180,7 @@ class ReportStatusUpdate(BaseModel):
 
 
 class ReportForPost(BaseModel):
+    id: int
     reporter_name: Optional[str] = None
     reason: str
     status: ReportStatus
