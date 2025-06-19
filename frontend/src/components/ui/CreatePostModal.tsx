@@ -15,6 +15,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
   const [mentionQuery, setMentionQuery] = useState('');
   const [normalizedQuery, setNormalizedQuery] = useState('');
   const [mentionError, setMentionError] = useState('');
+  const [mentionType, setMentionType] = useState<'user' | 'department'>('user');
   const [searchResults, setSearchResults] = useState<UserSearchResult[]>([]);
   const [selectedMentions, setSelectedMentions] = useState<UserSearchResult[]>([]);
   const [isComposing, setIsComposing] = useState(false);
@@ -63,6 +64,19 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
   };
 
   useEffect(() => {
+    if (mentionType === 'department') {
+      setMentionQuery('');
+      setNormalizedQuery('');
+      setSearchResults([]);
+      setMentionError('');
+    }
+  }, [mentionType]);
+
+  useEffect(() => {
+    if (mentionType !== 'user') {
+      setSearchResults([]);
+      return;
+    }
     const fetchUsers = async () => {
       if (normalizedQuery.length < 2) {
         setSearchResults([]);
@@ -80,7 +94,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
       }
     };
     fetchUsers();
-  }, [normalizedQuery]);
+  }, [normalizedQuery, mentionType]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,7 +107,8 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
     setError('');
 
     try {
-      const mention_user_ids = selectedMentions.map((u) => u.id);
+      const mention_user_ids =
+        mentionType === 'user' ? selectedMentions.map((u) => u.id) : [];
       await apiClient.post('/posts/', { content, mention_user_ids });
       // 投稿成功時、親に通知してモーダルを閉じ＆タイムラインを更新
       onPostSuccess();
@@ -122,29 +137,42 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
         </div>
         
         <form onSubmit={handleSubmit}>
-          <textarea
-            value={content}
-            onChange={handleContentChange}
-            className="w-full h-32 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Share Thanks"
-            autoFocus
-          />
-          <div className="flex justify-between items-center mt-2">
-            <p className={`text-sm ${content.length === MAX_CHARS ? 'text-red-500' : 'text-gray-500'}`}>
+          <div className="relative">
+            <textarea
+              value={content}
+              onChange={handleContentChange}
+              className="w-full h-32 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Share Thanks"
+              autoFocus
+            />
+            <p
+              className={`absolute bottom-2 right-2 text-sm ${content.length === MAX_CHARS ? 'text-red-500' : 'text-gray-500'}`}
+            >
               {content.length} / {MAX_CHARS}
             </p>
-            {error && <p className="text-red-500 text-sm">{error}</p>}
           </div>
-          <div className="mt-2 relative">
-            <input
-              type="text"
-              value={mentionQuery}
-              onChange={handleMentionChange}
-              onCompositionStart={() => setIsComposing(true)}
-              onCompositionEnd={handleCompositionEnd}
-              placeholder="ひらがな / カタカナ で検索してください"
-              className={`w-full p-2 rounded-md text-sm border ${mentionError ? 'border-red-500' : 'border-gray-300'}`}
-            />
+          {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
+          <div className="mt-2 flex items-start gap-2">
+            <select
+              value={mentionType}
+              onChange={(e) => setMentionType(e.target.value as 'user' | 'department')}
+              className="border border-gray-300 rounded-md p-2 text-sm"
+            >
+              <option value="user">User</option>
+              <option value="department">Department</option>
+            </select>
+            <div className="relative flex-1">
+              <input
+                type="text"
+                value={mentionQuery}
+                onChange={handleMentionChange}
+                onCompositionStart={() => setIsComposing(true)}
+                onCompositionEnd={handleCompositionEnd}
+                placeholder={mentionType === 'user' ? 'ひらがな / カタカナ で検索してください' : 'Coming soon'}
+                title={mentionType === 'department' ? 'Coming soon' : ''}
+                disabled={mentionType === 'department'}
+                className={`w-full p-2 rounded-md text-sm border ${mentionError ? 'border-red-500' : 'border-gray-300'} ${mentionType === 'department' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+              />
             {mentionError && (
               <p className="text-red-500 text-sm mt-1">{mentionError}</p>
             )}
@@ -192,6 +220,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
                   </button>
                 </span>
               ))}
+            </div>
             </div>
           </div>
           <div className="flex justify-end mt-4">
