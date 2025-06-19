@@ -239,14 +239,18 @@ def get_reports(db: Session):
     return reports
 
 
-def update_report_status(db: Session, report_id: int, status: models.Report.Status):
+def update_report_status(db: Session, report_id: int, status: models.ReportStatus):
     report = db.query(models.Report).filter(models.Report.id == report_id).first()
     if not report:
         return None
     logger.info("Updating report %s status to %s", report_id, status.value)
-    report.status = status
-    if status == models.Report.Status.deleted and report.reported_post:
-        report.reported_post.is_deleted = True
+    post = report.reported_post
+    if post:
+        post.report_status = status
+        if status == models.ReportStatus.deleted:
+            post.is_deleted = True
+        elif status == models.ReportStatus.pending:
+            post.is_deleted = False
     db.commit()
     db.refresh(report)
     return report

@@ -6,6 +6,12 @@ from datetime import datetime, timezone
 # No.7で作成したdatabase.pyから、全てのモデルが継承するBaseクラスをインポートします
 from .database import Base
 
+
+class ReportStatus(enum.Enum):
+    pending = "pending"
+    deleted = "deleted"
+    ignored = "ignored"
+
 # Association table for Post mentions
 post_mentions = Table(
     "post_mentions",
@@ -83,6 +89,11 @@ class Post(Base):
     # Soft deletion flag
     is_deleted = Column(Boolean, default=False)
 
+    # Moderation status shared across all reports
+    report_status = Column(
+        Enum(ReportStatus), default=ReportStatus.pending, nullable=False
+    )
+
     @property
     def mention_user_ids(self) -> list[int]:
         return [user.id for user in self.mentions]
@@ -100,12 +111,9 @@ class Report(Base):
         default=lambda: datetime.now(timezone.utc),
     )
 
-    class Status(enum.Enum):
-        pending = "pending"
-        deleted = "deleted"
-        ignored = "ignored"
-
-    status = Column(Enum(Status), default=Status.pending, nullable=False)
-
     reported_post = relationship("Post", back_populates="reports")
     reporter = relationship("User")
+
+    @property
+    def status(self) -> ReportStatus:
+        return self.reported_post.report_status if self.reported_post else ReportStatus.pending

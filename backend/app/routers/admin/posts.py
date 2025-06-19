@@ -33,6 +33,7 @@ def list_posts(
                 department_name=p.author.department.name if p.author and p.author.department else None,
                 mention_user_ids=p.mention_user_ids,
                 reports=reports,
+                status=p.report_status,
             )
         )
     return result
@@ -63,6 +64,7 @@ def list_deleted_posts(
                 department_name=p.author.department.name if p.author and p.author.department else None,
                 mention_user_ids=p.mention_user_ids,
                 reports=reports,
+                status=p.report_status,
             )
         )
     return result

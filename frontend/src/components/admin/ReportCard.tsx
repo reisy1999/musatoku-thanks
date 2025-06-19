@@ -9,9 +9,6 @@ export interface Report {
 
 type Props = {
   report: Report;
-  onDelete?: () => void;
-  onIgnore?: () => void;
-  readOnly?: boolean;
 };
 
 const badgeClass = (status: string) => {
@@ -28,7 +25,7 @@ const badgeClass = (status: string) => {
   }
 };
 
-const ReportCard: React.FC<Props> = ({ report, onDelete, onIgnore, readOnly }) => {
+const ReportCard: React.FC<Props> = ({ report }) => {
   return (
     <div className="text-sm space-y-1">
       <div className="flex justify-between items-start">
@@ -38,24 +35,8 @@ const ReportCard: React.FC<Props> = ({ report, onDelete, onIgnore, readOnly }) =
           </span>{' '}
           {report.reason}
         </div>
-        <span className={badgeClass(report.status)}>{report.status}</span>
       </div>
-      {report.status === 'pending' && !readOnly && (
-        <div className="space-x-2">
-          <button
-            className="text-red-600 hover:underline"
-            onClick={onDelete}
-          >
-            Delete post
-          </button>
-          <button
-            className="text-gray-600 hover:underline"
-            onClick={onIgnore}
-          >
-            Ignore
-          </button>
-        </div>
-      )}
+      {/* actions removed - status handled at post level */}
     </div>
   );
 };
