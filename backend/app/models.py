@@ -28,6 +28,14 @@ post_department_mentions = Table(
     Column("department_id", ForeignKey("departments.id"), primary_key=True),
 )
 
+# Association table for Post likes
+post_likes = Table(
+    "post_likes",
+    Base.metadata,
+    Column("post_id", ForeignKey("posts.id"), primary_key=True),
+    Column("user_id", ForeignKey("users.id"), primary_key=True),
+)
+
 
 class Department(Base):
     __tablename__ = "departments"
@@ -65,6 +73,12 @@ class User(Base):
         secondary=post_mentions,
         back_populates="mentions",
     )
+    # Posts this user liked
+    liked_posts = relationship(
+        "Post",
+        secondary=post_likes,
+        back_populates="likers",
+    )
 
 class Post(Base):
     __tablename__ = "posts"
@@ -94,6 +108,13 @@ class Post(Base):
         back_populates="mentioned_in",
     )
 
+    # Users who liked this post
+    likers = relationship(
+        "User",
+        secondary=post_likes,
+        back_populates="liked_posts",
+    )
+
     # Departments mentioned in this post
     mention_departments = relationship(
         "Department",
@@ -115,6 +136,10 @@ class Post(Base):
     @property
     def mention_department_ids(self) -> list[int]:
         return [dept.id for dept in self.mention_departments]
+
+    @property
+    def like_count(self) -> int:
+        return len(self.likers)
 
 
 class Report(Base):

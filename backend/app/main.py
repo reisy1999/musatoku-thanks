@@ -1,5 +1,5 @@
 import logging
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status, Response
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
@@ -124,6 +124,7 @@ def get_db():
         db.close()
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme_optional = OAuth2PasswordBearer(tokenUrl="token", auto_error=False)
 
 async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     """リクエストのヘッダーからトークンを検証し、現在のユーザー情報を取得する依存関係"""
@@ -144,6 +145,22 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
     if user is None:
         raise credentials_exception
     return user
+
+async def get_current_user_optional(
+    token: str | None = Depends(oauth2_scheme_optional),
+    db: Session = Depends(get_db),
+) -> schemas.User | None:
+    if not token:
+        return None
+    try:
+        payload = jwt.decode(token, auth.SECRET_KEY, algorithms=[auth.ALGORITHM])
+        employee_id: str | None = payload.get("sub")
+        if employee_id is None:
+            return None
+        token_data = schemas.TokenData(employee_id=employee_id)
+    except JWTError:
+        return None
+    return crud.get_user_by_employee_id(db, employee_id=token_data.employee_id)
 
 
 # --- APIエンドポイント ---
@@ -182,7 +199,10 @@ def list_departments(db: Session = Depends(get_db)):
     return crud.get_departments(db)
 
 @app.get("/posts/", response_model=list[schemas.Post])
-def read_posts(db: Session = Depends(get_db)):
+def read_posts(
+    db: Session = Depends(get_db),
+    current_user: schemas.User | None = Depends(get_current_user_optional),
+):
     """投稿を全件取得するエンドポイント。誰でも見れるように認証はかけない。"""
     posts = crud.get_posts(db)
     result = []
@@ -204,6 +224,10 @@ def read_posts(db: Session = Depends(get_db)):
                     schemas.MentionTarget(id=d.id, name=d.name if d else "[削除済み]")
                     for d in p.mention_departments
                 ],
+                like_count=p.like_count,
+                liked_by_me=current_user.id in [u.id for u in p.likers]
+                if current_user
+                else False,
             )
         )
     return result
@@ -242,9 +266,35 @@ def read_mentioned_posts(
                     schemas.MentionTarget(id=d.id, name=d.name if d else "[削除済み]")
                     for d in p.mention_departments
                 ],
+                like_count=p.like_count,
+                liked_by_me=current_user.id in [u.id for u in p.likers],
             )
         )
     return result
+
+
+@app.post("/posts/{post_id}/like", status_code=status.HTTP_204_NO_CONTENT)
+def like_post_endpoint(
+    post_id: int,
+    db: Session = Depends(get_db),
+    current_user: schemas.User = Depends(get_current_user),
+):
+    success = crud.like_post(db, post_id, current_user.id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Post not found")
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@app.delete("/posts/{post_id}/like", status_code=status.HTTP_204_NO_CONTENT)
+def unlike_post_endpoint(
+    post_id: int,
+    db: Session = Depends(get_db),
+    current_user: schemas.User = Depends(get_current_user),
+):
+    success = crud.unlike_post(db, post_id, current_user.id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Post not found")
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @app.post("/reports", response_model=schemas.ReportOut, status_code=status.HTTP_201_CREATED)

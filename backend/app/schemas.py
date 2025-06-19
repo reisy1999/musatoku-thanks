@@ -26,6 +26,8 @@ class Post(PostBase):
     mention_department_ids: list[int] = []
     mention_users: list['MentionTarget'] = []
     mention_departments: list['MentionTarget'] = []
+    like_count: int = 0
+    liked_by_me: bool = False
 
     # ★★★計画書通り、ここには投稿者の情報を含めません★★★
     # これにより、タイムラインの匿名性を保証します。
