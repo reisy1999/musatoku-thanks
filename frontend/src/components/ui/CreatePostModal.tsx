@@ -72,11 +72,6 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
     handleMentionChange(e as unknown as React.ChangeEvent<HTMLInputElement>);
   };
 
-  type UserSearchResult = {
-    id: number;
-    name: string;
-    department_name?: string | null;
-  };
 
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     if (e.target.value.length <= MAX_CHARS) {
