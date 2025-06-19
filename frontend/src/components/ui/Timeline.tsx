@@ -54,13 +54,15 @@ const Timeline: React.FC<TimelineProps> = ({
         const mapped = response.data.map((p) => ({
           ...p,
           mention_user_names:
-            p.mention_user_names ??
-            p.mention_users?.map((u: any) => u.name).filter(Boolean) ??
-            [],
+            Array.isArray(p.mention_user_names) && p.mention_user_names.length > 0
+              ? p.mention_user_names
+              : p.mention_users?.map((u: any) => u.name).filter(Boolean) ?? [],
           mention_department_names:
-            p.mention_department_names ??
-            p.mention_departments?.map((d: any) => d.name).filter(Boolean) ??
-            [],
+            Array.isArray(p.mention_department_names) &&
+            p.mention_department_names.length > 0
+              ? p.mention_department_names
+              : p.mention_departments?.map((d: any) => d.name).filter(Boolean) ??
+                [],
         }));
         setPosts(mapped);
         setError(null);

@@ -45,7 +45,10 @@ def delete_department(
     db: Session = Depends(get_db),
     _: schemas.User = Depends(require_admin),
 ):
-    success = crud.delete_department(db, dept_id)
+    try:
+        success = crud.delete_department(db, dept_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
     if not success:
         raise HTTPException(status_code=404, detail="Department not found")
     return Response(status_code=status.HTTP_204_NO_CONTENT)

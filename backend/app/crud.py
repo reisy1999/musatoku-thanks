@@ -104,6 +104,18 @@ def delete_department(db: Session, dept_id: int) -> bool:
     db_dept = db.query(models.Department).filter(models.Department.id == dept_id).first()
     if not db_dept:
         return False
+    has_users = (
+        db.query(models.User).filter(models.User.department_id == dept_id).first()
+        is not None
+    )
+    has_posts = (
+        db.query(models.post_department_mentions)
+        .filter(models.post_department_mentions.c.department_id == dept_id)
+        .first()
+        is not None
+    )
+    if has_users or has_posts:
+        raise ValueError("Department is referenced by users or posts")
     db.delete(db_dept)
     db.commit()
     return True

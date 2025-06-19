@@ -26,8 +26,6 @@ class Post(PostBase):
     mention_department_ids: list[int] = []
     mention_user_names: list[str] = []
     mention_department_names: list[str] = []
-    mention_users: list['MentionTarget'] = []
-    mention_departments: list['MentionTarget'] = []
     like_count: int = 0
     liked_by_me: bool = False
 
@@ -39,12 +37,6 @@ class Post(PostBase):
         from_attributes = True
 
 
-class MentionTarget(BaseModel):
-    id: int
-    name: Optional[str] = None
-
-    class Config:
-        from_attributes = True
 
 
 # --- User Schemas ---

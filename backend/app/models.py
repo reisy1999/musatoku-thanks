@@ -140,7 +140,13 @@ class Post(Base):
 
     @property
     def mention_user_names(self) -> list[str]:
-        return [user.name for user in self.mentions if user.is_active]
+        names = []
+        for user in self.mentions:
+            if user.is_active:
+                names.append(user.name)
+            else:
+                names.append("[削除済み]")
+        return names
 
     @property
     def mention_department_names(self) -> list[str]:
