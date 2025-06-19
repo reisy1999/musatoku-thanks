@@ -2,6 +2,7 @@ from fastapi.testclient import TestClient
 from ..main import app  # main.pyからFastAPIアプリをインポート
 from ..database import SessionLocal
 from .. import crud, schemas, models
+import jaconv
 
 def test_read_main():
     """
@@ -190,7 +191,8 @@ def test_list_departments():
         resp = client.get("/departments")
         assert resp.status_code == 200
         data = resp.json()
-        assert any(d["name"] == "テスト部署" for d in data)
+        expected = jaconv.z2h("テスト部署", kana=True, ascii=False, digit=False)
+        assert any(d["name"] == expected for d in data)
 
 
 def test_post_department_mentions():
@@ -221,7 +223,9 @@ def test_post_department_mentions():
         assert user_dept2.id in ids
         assert user_dept3.id not in ids
         assert data["mention_department_ids"] == [user_dept2.department_id]
-        assert data["mention_department_names"] == [user_dept2.department.name]
+        assert data["mention_department_names"] == [
+            jaconv.z2h(user_dept2.department.name, kana=True, ascii=False, digit=False)
+        ]
 
         resp2 = client.post(
             "/posts/",
@@ -233,7 +237,10 @@ def test_post_department_mentions():
         ids2 = data2["mention_user_ids"]
         assert user_dept2.id in ids2 and user_dept3.id in ids2
         assert set(data2["mention_department_ids"]) == {user_dept2.department_id, user_dept3.department_id}
-        assert set(data2["mention_department_names"]) == {user_dept2.department.name, user_dept3.department.name}
+        assert set(data2["mention_department_names"]) == {
+            jaconv.z2h(user_dept2.department.name, kana=True, ascii=False, digit=False),
+            jaconv.z2h(user_dept3.department.name, kana=True, ascii=False, digit=False),
+        }
 
         resp3 = client.post(
             "/posts/",
@@ -245,7 +252,9 @@ def test_post_department_mentions():
         ids3 = data3["mention_user_ids"]
         assert ids3.count(user_dept2.id) == 1
         assert data3["mention_department_ids"] == [user_dept2.department_id]
-        assert data3["mention_department_names"] == [user_dept2.department.name]
+        assert data3["mention_department_names"] == [
+            jaconv.z2h(user_dept2.department.name, kana=True, ascii=False, digit=False)
+        ]
 
         resp_invalid = client.post(
             "/posts/",
@@ -263,4 +272,6 @@ def test_post_department_mentions():
         assert timeline.status_code == 200
         post = next(p for p in timeline.json() if p["id"] == resp.json()["id"])
         assert user_dept2.department_id in post.get("mention_department_ids", [])
-        assert user_dept2.department.name in post.get("mention_department_names", [])
+        assert jaconv.z2h(
+            user_dept2.department.name, kana=True, ascii=False, digit=False
+        ) in post.get("mention_department_names", [])

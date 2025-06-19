@@ -23,6 +23,8 @@ interface AdminPost {
   author_name: string;
   department_name?: string | null;
   mention_user_ids: number[];
+  mention_user_names?: string[];
+  mention_department_names?: string[];
   reports: Report[];
   status: 'pending' | 'deleted' | 'ignored';
 }
@@ -137,6 +139,13 @@ const PostAdminPanel: React.FC<Props> = ({ showDeleted }) => {
               </span>
             </div>
           <p className="whitespace-pre-wrap mb-2">{post.content}</p>
+          {(post.mention_user_names?.length || 0) +
+            (post.mention_department_names?.length || 0) > 0 && (
+            <p className="text-xs text-gray-500 mb-2">
+              {post.mention_user_names?.map((n) => `@${n}`).join(' ')}{' '}
+              {post.mention_department_names?.map((n) => `@${n}`).join(' ')}
+            </p>
+          )}
           {post.reports.length === 0 ? (
             <p className="text-sm text-gray-500">No reports submitted</p>
           ) : (
