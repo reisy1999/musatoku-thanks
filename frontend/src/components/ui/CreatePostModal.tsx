@@ -37,7 +37,14 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
 
     if (isComposing && e.type !== 'compositionend') return;
 
-    if (value && !kanaRegex.test(value)) {
+    if (!value.trim()) {
+      setMentionError('');
+      setNormalizedQuery('');
+      setSearchResults([]);
+      return;
+    }
+
+    if (!kanaRegex.test(value)) {
       setMentionError('ひらがな or カタカナ で入力してください');
       setNormalizedQuery('');
       setSearchResults([]);
@@ -47,6 +54,15 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
     setMentionError('');
     const halfKana = normalizeKana(value);
     setNormalizedQuery(halfKana);
+  };
+
+  const handleMentionKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+  ) => {
+    if (e.key === 'Enter' && mentionQuery.trim()) {
+      setMentionError('⚠️ メンションは候補から選択してください');
+      e.preventDefault();
+    }
   };
 
   const handleCompositionEnd = (
@@ -116,7 +132,12 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
       setError('メッセージを入力してください。');
       return;
     }
-    
+
+    if (mentionQuery.trim()) {
+      setMentionError('⚠️ メンションは候補から選択してください');
+      return;
+    }
+
     setIsSubmitting(true);
     setError('');
 
@@ -189,6 +210,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
                   type="text"
                   value={mentionQuery}
                   onChange={handleMentionChange}
+                  onKeyDown={handleMentionKeyDown}
                   onCompositionStart={() => setIsComposing(true)}
                   onCompositionEnd={handleCompositionEnd}
                   placeholder="ひらがな / カタカナ で検索してください"
