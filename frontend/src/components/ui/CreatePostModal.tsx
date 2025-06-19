@@ -256,6 +256,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
                     }}
                   >
                   {u.name}
+                  {u.department_name ? ` (${u.department_name})` : ''}
                   </li>
                 ))}
               </ul>
