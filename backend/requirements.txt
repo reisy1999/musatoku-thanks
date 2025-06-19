@@ -1,5 +1,5 @@
 # Webフレームワーク
-fastapi
+fastapi>=0.103
 
 # FastAPIを動かすためのサーバー
 uvicorn[standard]
@@ -19,6 +19,7 @@ python-dotenv
 # Form data parsing for OAuth2PasswordRequestForm
 python-multipart
 jaconv
+pydantic>=2
 
 pytest
 requests
