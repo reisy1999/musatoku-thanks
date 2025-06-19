@@ -8,6 +8,8 @@ interface Post {
   id: number;
   content: string;
   created_at: string; // ISO 8601形式の文字列
+  mention_users?: { id: number; name: string | null }[];
+  mention_departments?: { id: number; name: string | null }[];
 }
 
 // 親コンポーネントから受け取るPropsの型を定義

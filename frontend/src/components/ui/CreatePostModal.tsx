@@ -16,8 +16,13 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
   const [normalizedQuery, setNormalizedQuery] = useState('');
   const [mentionError, setMentionError] = useState('');
   const [mentionType, setMentionType] = useState<'user' | 'department'>('user');
+  type MentionTarget = { id: number; name: string; type: 'user' | 'department' };
+  type UserSearchResult = { id: number; name: string; department_name?: string | null };
+  type Department = { id: number; name: string };
+
   const [searchResults, setSearchResults] = useState<UserSearchResult[]>([]);
-  const [selectedMentions, setSelectedMentions] = useState<UserSearchResult[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [selectedMentions, setSelectedMentions] = useState<MentionTarget[]>([]);
   const [isComposing, setIsComposing] = useState(false);
   const MAX_CHARS = 140;
 
@@ -69,6 +74,15 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
       setNormalizedQuery('');
       setSearchResults([]);
       setMentionError('');
+      const fetchDepts = async () => {
+        try {
+          const resp = await apiClient.get<Department[]>('/departments');
+          setDepartments(resp.data);
+        } catch (err) {
+          console.error(err);
+        }
+      };
+      fetchDepts();
     }
   }, [mentionType]);
 
@@ -107,9 +121,17 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
     setError('');
 
     try {
-      const mention_user_ids =
-        mentionType === 'user' ? selectedMentions.map((u) => u.id) : [];
-      await apiClient.post('/posts/', { content, mention_user_ids });
+      const mention_user_ids = selectedMentions
+        .filter((m) => m.type === 'user')
+        .map((m) => m.id);
+      const mention_department_ids = selectedMentions
+        .filter((m) => m.type === 'department')
+        .map((m) => m.id);
+      await apiClient.post('/posts/', {
+        content,
+        mention_user_ids,
+        mention_department_ids,
+      });
       // 投稿成功時、親に通知してモーダルを閉じ＆タイムラインを更新
       onPostSuccess();
     } catch (err) {
@@ -162,21 +184,42 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
               <option value="department">Department</option>
             </select>
             <div className="relative flex-1">
-              <input
-                type="text"
-                value={mentionQuery}
-                onChange={handleMentionChange}
-                onCompositionStart={() => setIsComposing(true)}
-                onCompositionEnd={handleCompositionEnd}
-                placeholder={mentionType === 'user' ? 'ひらがな / カタカナ で検索してください' : 'Coming soon'}
-                title={mentionType === 'department' ? 'Coming soon' : ''}
-                disabled={mentionType === 'department'}
-                className={`w-full p-2 rounded-md text-sm border ${mentionError ? 'border-red-500' : 'border-gray-300'} ${mentionType === 'department' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
-              />
+              {mentionType === 'user' ? (
+                <input
+                  type="text"
+                  value={mentionQuery}
+                  onChange={handleMentionChange}
+                  onCompositionStart={() => setIsComposing(true)}
+                  onCompositionEnd={handleCompositionEnd}
+                  placeholder="ひらがな / カタカナ で検索してください"
+                  className={`w-full p-2 rounded-md text-sm border ${mentionError ? 'border-red-500' : 'border-gray-300'}`}
+                />
+              ) : (
+                <select
+                  value=""
+                  onChange={(e) => {
+                    const id = Number(e.target.value);
+                    if (!id) return;
+                    const dept = departments.find((d) => d.id === id);
+                    if (!dept) return;
+                    if (selectedMentions.find((m) => m.id === id)) return;
+                    setSelectedMentions([...selectedMentions, { id, name: dept.name, type: 'department' }]);
+                    (e.target as HTMLSelectElement).value = '';
+                  }}
+                  className="w-full p-2 rounded-md text-sm border border-gray-300"
+                >
+                  <option value="">Select department</option>
+                  {departments.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.name}
+                    </option>
+                  ))}
+                </select>
+              )}
             {mentionError && (
               <p className="text-red-500 text-sm mt-1">{mentionError}</p>
             )}
-            {searchResults.length > 0 && (
+            {mentionType === 'user' && searchResults.length > 0 && (
               <ul className="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 max-h-40 overflow-y-auto">
                 {searchResults.map((u) => (
                   <li
@@ -188,14 +231,14 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
                         selectedMentions.length >= 3
                       )
                         return;
-                      setSelectedMentions([...selectedMentions, u]);
+                      setSelectedMentions([...selectedMentions, { id: u.id, name: u.name, type: 'user' }]);
                       setMentionQuery('');
                       setNormalizedQuery('');
                       setMentionError('');
                       setSearchResults([]);
                     }}
                   >
-                    {u.name}（{u.department_name ?? ''}）
+                  {u.name}
                   </li>
                 ))}
               </ul>

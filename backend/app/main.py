@@ -175,11 +175,38 @@ def search_users(query: str, db: Session = Depends(get_db)):
     users = crud.search_users(db, query=query)
     return users
 
+
+@app.get("/departments", response_model=list[schemas.Department])
+def list_departments(db: Session = Depends(get_db)):
+    """Public endpoint to retrieve all departments."""
+    return crud.get_departments(db)
+
 @app.get("/posts/", response_model=list[schemas.Post])
 def read_posts(db: Session = Depends(get_db)):
     """投稿を全件取得するエンドポイント。誰でも見れるように認証はかけない。"""
     posts = crud.get_posts(db)
-    return posts
+    result = []
+    for p in posts:
+        result.append(
+            schemas.Post(
+                id=p.id,
+                content=p.content,
+                created_at=p.created_at,
+                mention_user_ids=p.mention_user_ids,
+                mention_department_ids=p.mention_department_ids,
+                mention_users=[
+                    schemas.MentionTarget(
+                        id=u.id, name=u.name if u.is_active else "[削除済み]"
+                    )
+                    for u in p.mentions
+                ],
+                mention_departments=[
+                    schemas.MentionTarget(id=d.id, name=d.name if d else "[削除済み]")
+                    for d in p.mention_departments
+                ],
+            )
+        )
+    return result
 
 @app.post("/posts/", response_model=schemas.Post, status_code=status.HTTP_201_CREATED)
 def create_post_for_user(post: schemas.PostCreate, db: Session = Depends(get_db), current_user: schemas.User = Depends(get_current_user)):
@@ -196,7 +223,28 @@ def read_mentioned_posts(
 ):
     """Retrieve posts where the current user is mentioned."""
     posts = crud.get_posts_mentioned(db, user_id=current_user.id)
-    return posts
+    result = []
+    for p in posts:
+        result.append(
+            schemas.Post(
+                id=p.id,
+                content=p.content,
+                created_at=p.created_at,
+                mention_user_ids=p.mention_user_ids,
+                mention_department_ids=p.mention_department_ids,
+                mention_users=[
+                    schemas.MentionTarget(
+                        id=u.id, name=u.name if u.is_active else "[削除済み]"
+                    )
+                    for u in p.mentions
+                ],
+                mention_departments=[
+                    schemas.MentionTarget(id=d.id, name=d.name if d else "[削除済み]")
+                    for d in p.mention_departments
+                ],
+            )
+        )
+    return result
 
 
 @app.post("/reports", response_model=schemas.ReportOut, status_code=status.HTTP_201_CREATED)

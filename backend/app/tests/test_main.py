@@ -184,6 +184,15 @@ def test_user_search_endpoint():
         db.close()
 
 
+def test_list_departments():
+    """/departments should list departments"""
+    with TestClient(app) as client:
+        resp = client.get("/departments")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert any(d["name"] == "テスト部署" for d in data)
+
+
 def test_post_department_mentions():
     """department mentions expand to user mentions"""
     with TestClient(app) as client:
@@ -236,3 +245,9 @@ def test_post_department_mentions():
         )
         assert resp_invalid.status_code == 201
         assert resp_invalid.json()["mention_user_ids"] == []
+
+        # ensure department ids are returned in post listing
+        timeline = client.get("/posts/")
+        assert timeline.status_code == 200
+        post = next(p for p in timeline.json() if p["id"] == resp.json()["id"])
+        assert user_dept2.department_id in post.get("mention_department_ids", [])

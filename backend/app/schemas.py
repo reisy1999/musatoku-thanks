@@ -23,11 +23,22 @@ class Post(PostBase):
     id: int
     created_at: datetime
     mention_user_ids: list[int] = []
+    mention_department_ids: list[int] = []
+    mention_users: list['MentionTarget'] = []
+    mention_departments: list['MentionTarget'] = []
 
     # ★★★計画書通り、ここには投稿者の情報を含めません★★★
     # これにより、タイムラインの匿名性を保証します。
 
     # SQLAlchemyモデルからPydanticモデルへ変換するために必要なおまじない
+    class Config:
+        from_attributes = True
+
+
+class MentionTarget(BaseModel):
+    id: int
+    name: Optional[str] = None
+
     class Config:
         from_attributes = True
 
