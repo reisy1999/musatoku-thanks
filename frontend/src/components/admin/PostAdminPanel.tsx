@@ -38,7 +38,7 @@ const PostAdminPanel: React.FC<Props> = ({ showDeleted }) => {
   const [expanded, setExpanded] = useState<Record<number, boolean>>({});
   const [search, setSearch] = useState('');
 
-  const endpoint = showDeleted ? '/admin/posts/deleted' : '/admin/posts';
+  const endpoint = showDeleted ? '/admin/posts/deleted' : '/admin/reports';
 
   const fetchData = async () => {
     try {
