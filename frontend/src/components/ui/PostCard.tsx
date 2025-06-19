@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
-import apiClient from '../../services/api';
+import React, { useState } from "react";
+import apiClient from "../../services/api";
 
 interface Post {
   id: number;
   content: string;
   created_at: string;
-  mention_users?: { id: number; name: string | null }[];
-  mention_departments?: { id: number; name: string | null }[];
+  mention_user_names?: string[];
+  mention_department_names?: string[];
   like_count?: number;
   liked_by_me?: boolean;
 }
@@ -22,7 +22,7 @@ const formatRelativeTime = (isoString: string): string => {
   const diffInSeconds = Math.floor((now.getTime() - past.getTime()) / 1000);
 
   const minutes = Math.floor(diffInSeconds / 60);
-  if (minutes < 1) return 'たった今';
+  if (minutes < 1) return "たった今";
   if (minutes < 60) return `${minutes}分前`;
 
   const hours = Math.floor(minutes / 60);
@@ -60,10 +60,12 @@ const PostCard: React.FC<PostCardProps> = ({ post, onReport }) => {
       <div className="flex justify-between items-center mb-2">
         <div className="flex items-center gap-2 text-sm text-gray-500">
           <span>{formatRelativeTime(post.created_at)}</span>
-          {(post.mention_users?.length || 0) + (post.mention_departments?.length || 0) > 0 && (
+          {(post.mention_user_names?.length || 0) +
+            (post.mention_department_names?.length || 0) >
+            0 && (
             <span className="text-xs text-gray-500">
-              {post.mention_users?.map((u) => `@${u.name ?? '[削除済み]'}`).join(' ')}{' '}
-              {post.mention_departments?.map((d) => `@${d.name ?? '[削除済み]'}`).join(' ')}
+              {post.mention_user_names?.map((n) => `@${n}`).join(" ")}{" "}
+              {post.mention_department_names?.map((n) => `@${n}`).join(" ")}
             </span>
           )}
         </div>
@@ -93,10 +95,10 @@ const PostCard: React.FC<PostCardProps> = ({ post, onReport }) => {
       <div className="flex justify-end items-center mt-2">
         <button
           onClick={toggleLike}
-          title={liked ? '取り消す' : 'いいね！'}
-          className={`transition-transform ${liked ? 'text-red-500' : 'text-gray-400'} hover:scale-110`}
+          title={liked ? "取り消す" : "いいね！"}
+          className={`transition-transform ${liked ? "text-red-500" : "text-gray-400"} hover:scale-110`}
         >
-          {liked ? '❤' : '♡'}
+          {liked ? "❤" : "♡"}
         </button>
         <span className="ml-1 text-sm text-gray-600">{count}</span>
       </div>
