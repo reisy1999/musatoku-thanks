@@ -138,6 +138,14 @@ class Post(Base):
         return [dept.id for dept in self.mention_departments]
 
     @property
+    def mention_user_names(self) -> list[str]:
+        return [user.name for user in self.mentions if user.is_active]
+
+    @property
+    def mention_department_names(self) -> list[str]:
+        return [dept.name for dept in self.mention_departments]
+
+    @property
     def like_count(self) -> int:
         return len(self.likers)
 

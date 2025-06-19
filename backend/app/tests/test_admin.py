@@ -43,14 +43,24 @@ def test_admin_list_and_delete_posts():
         user = crud.get_user_by_employee_id(db, "000000")
         user_id = user.id
         user_name = user.name
+        dept_id = user.department_id
+        dept_name = user.department.name if user.department else None
         p1 = crud.create_post(
             db,
-            schemas.PostCreate(content="admin post 1", mention_user_ids=[user_id]),
+            schemas.PostCreate(
+                content="admin post 1",
+                mention_user_ids=[user_id],
+                mention_department_ids=[user.department_id],
+            ),
             user_id,
         )
         p2 = crud.create_post(
             db,
-            schemas.PostCreate(content="admin post 2", mention_user_ids=[user_id]),
+            schemas.PostCreate(
+                content="admin post 2",
+                mention_user_ids=[user_id],
+                mention_department_ids=[user.department_id],
+            ),
             user_id,
         )
         p1_id = p1.id
@@ -62,6 +72,9 @@ def test_admin_list_and_delete_posts():
         assert posts[0]["created_at"] >= posts[1]["created_at"]
         assert posts[0]["author_name"] == user_name
         assert user_id in posts[0]["mention_user_ids"]
+        assert dept_id in posts[0]["mention_department_ids"]
+        assert user_name in posts[0]["mention_user_names"]
+        assert posts[0]["mention_department_names"] == [dept_name]
 
         del_resp = client.delete(f"/admin/posts/{p1_id}", headers={"Authorization": f"Bearer {token}"})
         assert del_resp.status_code == 204

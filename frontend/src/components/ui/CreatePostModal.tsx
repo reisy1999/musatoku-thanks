@@ -23,6 +23,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
   const [searchResults, setSearchResults] = useState<UserSearchResult[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [selectedMentions, setSelectedMentions] = useState<MentionTarget[]>([]);
+  const [selectedDepartments, setSelectedDepartments] = useState<number[]>([]);
   const [isComposing, setIsComposing] = useState(false);
   const MAX_CHARS = 140;
 
@@ -140,9 +141,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
       const mention_user_ids = selectedMentions
         .filter((m) => m.type === 'user')
         .map((m) => m.id);
-      const mention_department_ids = selectedMentions
-        .filter((m) => m.type === 'department')
-        .map((m) => m.id);
+      const mention_department_ids = selectedDepartments;
       await apiClient.post('/posts/', {
         content,
         mention_user_ids,
@@ -220,7 +219,11 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
                     const dept = departments.find((d) => d.id === id);
                     if (!dept) return;
                     if (selectedMentions.find((m) => m.id === id)) return;
-                    setSelectedMentions([...selectedMentions, { id, name: dept.name, type: 'department' }]);
+                    setSelectedMentions([
+                      ...selectedMentions,
+                      { id, name: dept.name, type: 'department' },
+                    ]);
+                    setSelectedDepartments([...selectedDepartments, id]);
                     (e.target as HTMLSelectElement).value = '';
                   }}
                   className="w-full p-2 rounded-md text-sm border border-gray-300"
@@ -271,12 +274,19 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
                   <button
                     type="button"
                     className="ml-1"
-                    onClick={() =>
-                      setSelectedMentions(
-                        selectedMentions.filter((m) => m.id !== u.id),
-                      )
-                    }
-                  >
+                  onClick={() =>
+                      {
+                        setSelectedMentions(
+                          selectedMentions.filter((m) => m.id !== u.id),
+                        );
+                        if (u.type === 'department') {
+                          setSelectedDepartments(
+                            selectedDepartments.filter((d) => d !== u.id),
+                          );
+                        }
+                      }
+                  }
+                >
                     &times;
                   </button>
                 </span>

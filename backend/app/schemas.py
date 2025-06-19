@@ -24,6 +24,8 @@ class Post(PostBase):
     created_at: datetime
     mention_user_ids: list[int] = []
     mention_department_ids: list[int] = []
+    mention_user_names: list[str] = []
+    mention_department_names: list[str] = []
     mention_users: list['MentionTarget'] = []
     mention_departments: list['MentionTarget'] = []
     like_count: int = 0
@@ -133,6 +135,9 @@ class AdminPost(BaseModel):
     author_name: str
     department_name: Optional[str] = None
     mention_user_ids: list[int] = []
+    mention_department_ids: list[int] = []
+    mention_user_names: list[str] = []
+    mention_department_names: list[str] = []
     reports: list['ReportForPost'] = []
     status: ReportStatus
 

@@ -216,9 +216,12 @@ def test_post_department_mentions():
             headers=headers,
         )
         assert resp.status_code == 201
-        ids = resp.json()["mention_user_ids"]
+        data = resp.json()
+        ids = data["mention_user_ids"]
         assert user_dept2.id in ids
         assert user_dept3.id not in ids
+        assert data["mention_department_ids"] == [user_dept2.department_id]
+        assert data["mention_department_names"] == [user_dept2.department.name]
 
         resp2 = client.post(
             "/posts/",
@@ -226,8 +229,11 @@ def test_post_department_mentions():
             headers=headers,
         )
         assert resp2.status_code == 201
-        ids2 = resp2.json()["mention_user_ids"]
+        data2 = resp2.json()
+        ids2 = data2["mention_user_ids"]
         assert user_dept2.id in ids2 and user_dept3.id in ids2
+        assert set(data2["mention_department_ids"]) == {user_dept2.department_id, user_dept3.department_id}
+        assert set(data2["mention_department_names"]) == {user_dept2.department.name, user_dept3.department.name}
 
         resp3 = client.post(
             "/posts/",
@@ -235,8 +241,11 @@ def test_post_department_mentions():
             headers=headers,
         )
         assert resp3.status_code == 201
-        ids3 = resp3.json()["mention_user_ids"]
+        data3 = resp3.json()
+        ids3 = data3["mention_user_ids"]
         assert ids3.count(user_dept2.id) == 1
+        assert data3["mention_department_ids"] == [user_dept2.department_id]
+        assert data3["mention_department_names"] == [user_dept2.department.name]
 
         resp_invalid = client.post(
             "/posts/",
@@ -244,10 +253,14 @@ def test_post_department_mentions():
             headers=headers,
         )
         assert resp_invalid.status_code == 201
-        assert resp_invalid.json()["mention_user_ids"] == []
+        invalid = resp_invalid.json()
+        assert invalid["mention_user_ids"] == []
+        assert invalid["mention_department_ids"] == []
+        assert invalid["mention_department_names"] == []
 
         # ensure department ids are returned in post listing
         timeline = client.get("/posts/")
         assert timeline.status_code == 200
         post = next(p for p in timeline.json() if p["id"] == resp.json()["id"])
         assert user_dept2.department_id in post.get("mention_department_ids", [])
+        assert user_dept2.department.name in post.get("mention_department_names", [])
