@@ -98,24 +98,32 @@ const PostAdminPanel: React.FC<Props> = ({ showDeleted }) => {
         <div key={post.id} className="border rounded p-4">
           <div className="text-sm text-gray-600 flex justify-between mb-2">
             <span>{new Date(post.created_at).toLocaleString()}</span>
-            <span>
-              {post.author_name}
-              {post.department_name ? ` / ${post.department_name}` : ''}
+            <span className="flex items-center space-x-1">
+              <span>
+                {post.author_name}
+                {post.department_name ? ` / ${post.department_name}` : ''}
+              </span>
+              {post.reports.length > 0 ? (
+                <span className="px-2 py-0.5 rounded bg-red-100 text-red-800 text-xs">Reported</span>
+              ) : (
+                <span className="px-2 py-0.5 rounded bg-gray-100 text-gray-600 text-xs">Unreported</span>
+              )}
             </span>
           </div>
           <p className="whitespace-pre-wrap mb-2">{post.content}</p>
           {post.reports.length === 0 ? (
-            <p className="text-sm text-gray-500">No reports</p>
+            <p className="text-sm text-gray-500">No reports submitted</p>
           ) : (
             <div>
               {(expanded[post.id] ? post.reports : [post.reports[0]]).map((r) => (
-                <ReportCard
-                  key={r.id}
-                  report={r}
-                  readOnly={showDeleted}
-                  onDelete={() => updateStatus(r.id, 'deleted', post.id)}
-                  onIgnore={() => updateStatus(r.id, 'ignored', post.id)}
-                />
+                <div className="bg-gray-50 p-2 rounded mb-1" key={r.id}>
+                  <ReportCard
+                    report={r}
+                    readOnly={showDeleted}
+                    onDelete={() => updateStatus(r.id, 'deleted', post.id)}
+                    onIgnore={() => updateStatus(r.id, 'ignored', post.id)}
+                  />
+                </div>
               ))}
               {post.reports.length > 1 && (
                 <button
