@@ -114,7 +114,11 @@ def get_posts(db: Session, skip: int = 0, limit: int = 100):
     """
     posts = (
         db.query(models.Post)
-        .options(joinedload(models.Post.mentions), joinedload(models.Post.mention_departments))
+        .options(
+            joinedload(models.Post.mentions),
+            joinedload(models.Post.mention_departments),
+            joinedload(models.Post.likers),
+        )
         .filter(models.Post.is_deleted == False)
         .order_by(models.Post.created_at.desc())
         .offset(skip)
@@ -164,7 +168,11 @@ def get_posts_mentioned(db: Session, user_id: int, skip: int = 0, limit: int = 1
     posts = (
         db.query(models.Post)
         .join(models.post_mentions)
-        .options(joinedload(models.Post.mentions), joinedload(models.Post.mention_departments))
+        .options(
+            joinedload(models.Post.mentions),
+            joinedload(models.Post.mention_departments),
+            joinedload(models.Post.likers),
+        )
         .filter(models.post_mentions.c.user_id == user_id)
         .filter(models.Post.is_deleted == False)
         .order_by(models.Post.created_at.desc())
@@ -185,6 +193,7 @@ def get_all_posts(db: Session):
             joinedload(models.Post.author).joinedload(models.User.department),
             joinedload(models.Post.mentions),
             joinedload(models.Post.mention_departments),
+            joinedload(models.Post.likers),
             joinedload(models.Post.reports).joinedload(models.Report.reporter),
         )
         .filter(models.Post.is_deleted == False)
@@ -204,6 +213,7 @@ def get_reported_posts(db: Session):
             joinedload(models.Post.author).joinedload(models.User.department),
             joinedload(models.Post.mentions),
             joinedload(models.Post.mention_departments),
+            joinedload(models.Post.likers),
             joinedload(models.Post.reports).joinedload(models.Report.reporter),
         )
         .filter(models.Post.is_deleted == False)
@@ -224,6 +234,7 @@ def get_deleted_posts(db: Session):
             joinedload(models.Post.author).joinedload(models.User.department),
             joinedload(models.Post.mentions),
             joinedload(models.Post.mention_departments),
+            joinedload(models.Post.likers),
             joinedload(models.Post.reports).joinedload(models.Report.reporter),
         )
         .filter(models.Post.is_deleted == True)
@@ -241,6 +252,30 @@ def delete_post(db: Session, post_id: int) -> bool:
     if not post:
         return False
     db.delete(post)
+    db.commit()
+    return True
+
+
+def like_post(db: Session, post_id: int, user_id: int) -> bool:
+    post = db.query(models.Post).filter(models.Post.id == post_id).first()
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not post or not user:
+        return False
+    if user in post.likers:
+        return True
+    post.likers.append(user)
+    db.commit()
+    return True
+
+
+def unlike_post(db: Session, post_id: int, user_id: int) -> bool:
+    post = db.query(models.Post).filter(models.Post.id == post_id).first()
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not post or not user:
+        return False
+    if user not in post.likers:
+        return True
+    post.likers.remove(user)
     db.commit()
     return True
 

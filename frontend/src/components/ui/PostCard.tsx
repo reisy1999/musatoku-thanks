@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import apiClient from '../../services/api';
 
 interface Post {
   id: number;
@@ -6,6 +7,8 @@ interface Post {
   created_at: string;
   mention_users?: { id: number; name: string | null }[];
   mention_departments?: { id: number; name: string | null }[];
+  like_count?: number;
+  liked_by_me?: boolean;
 }
 
 type PostCardProps = {
@@ -31,6 +34,26 @@ const formatRelativeTime = (isoString: string): string => {
 
 const PostCard: React.FC<PostCardProps> = ({ post, onReport }) => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [liked, setLiked] = useState(post.liked_by_me ?? false);
+  const [count, setCount] = useState(post.like_count ?? 0);
+
+  const toggleLike = async () => {
+    try {
+      if (!liked) {
+        setLiked(true);
+        setCount((c) => c + 1);
+        await apiClient.post(`/posts/${post.id}/like`);
+      } else {
+        setLiked(false);
+        setCount((c) => c - 1);
+        await apiClient.delete(`/posts/${post.id}/like`);
+      }
+    } catch (err) {
+      console.error(err);
+      setLiked((l) => !l);
+      setCount((c) => (liked ? c + 1 : c - 1));
+    }
+  };
 
   return (
     <div className="p-4 border-b border-gray-200 hover:bg-gray-50 relative">
@@ -67,6 +90,16 @@ const PostCard: React.FC<PostCardProps> = ({ post, onReport }) => {
         </div>
       </div>
       <p className="text-gray-800 whitespace-pre-wrap">{post.content}</p>
+      <div className="flex justify-end items-center mt-2">
+        <button
+          onClick={toggleLike}
+          title={liked ? '取り消す' : 'いいね！'}
+          className={`transition-transform ${liked ? 'text-red-500' : 'text-gray-400'} hover:scale-110`}
+        >
+          {liked ? '❤' : '♡'}
+        </button>
+        <span className="ml-1 text-sm text-gray-600">{count}</span>
+      </div>
     </div>
   );
 };
