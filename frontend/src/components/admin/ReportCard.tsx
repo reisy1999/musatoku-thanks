@@ -28,7 +28,7 @@ const badgeClass = (status: string) => {
 
 const ReportCard: React.FC<Props> = ({ report, onDelete, onIgnore, readOnly }) => {
   return (
-    <div className="border-t pt-2 text-sm space-y-1">
+    <div className="text-sm space-y-1">
       <div className="flex justify-between items-center">
         <div>
           {report.reporter_name ?? 'Unknown'}: {report.reason}
