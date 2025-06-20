@@ -110,7 +110,6 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
         return;
       }
       try {
-        console.debug('mention search:', normalizedQuery);
         const resp = await apiClient.get<UserSearchResult[]>(
           '/users/search',
           { params: { query: normalizedQuery } },
