@@ -47,7 +47,7 @@ const MainPage: React.FC<MainPageProps> = ({ onLogout, isAdmin }) => {
         </header>
 
         {/* --- 中央カラム (メインタイムライン) --- */}
-        <main className="col-span-6 border-l border-r border-gray-200 relative">
+        <main className="col-span-6 border-l border-r border-gray-200 relative flex flex-col h-screen">
           <div className="border-b border-gray-200">
             <div className="flex">
               <button
@@ -72,28 +72,28 @@ const MainPage: React.FC<MainPageProps> = ({ onLogout, isAdmin }) => {
               </button>
             </div>
           </div>
-          <Timeline
-            postSuccessTrigger={postSuccess}
-            endpoint={activeTab === 'all' ? '/posts/' : '/posts/mentioned'}
-          />
+          <div className="flex-1 overflow-y-auto pb-20">
+            <Timeline
+              postSuccessTrigger={postSuccess}
+              endpoint={activeTab === 'all' ? '/posts/' : '/posts/mentioned'}
+            />
+          </div>
 
           {/* --- 投稿作成ボタン --- */}
-          <div className="sticky bottom-8 flex justify-end pr-4 pointer-events-auto">
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="bg-blue-600 text-white rounded-full p-4 shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="absolute bottom-4 right-4 bg-blue-600 text-white rounded-full p-4 shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-            </button>
-          </div>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+          </button>
         </main>
         
         {/* --- 右カラム (空きスペース) --- */}
