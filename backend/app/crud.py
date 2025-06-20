@@ -9,6 +9,7 @@ logger = logging.getLogger(__name__)
 
 # --- User CRUD ---
 
+
 def get_user_by_employee_id(db: Session, employee_id: str):
     """社員IDを元にユーザーを一件取得します。"""
     return (
@@ -18,12 +19,14 @@ def get_user_by_employee_id(db: Session, employee_id: str):
         .first()
     )
 
+
 def create_user(db: Session, user: schemas.UserCreate):
     """ユーザーを新規作成します。"""
     hashed_password = auth.get_password_hash(user.password)
     db_user = models.User(
         employee_id=user.employee_id,
         name=user.name,
+        display_name=user.display_name,
         hashed_password=hashed_password,
         department_id=user.department_id,
         is_admin=user.is_admin,
@@ -59,6 +62,7 @@ def search_users(db: Session, query: str, limit: int = 10):
         .all()
     )
 
+
 def deactivate_user(db: Session, user_id: int) -> bool:
     """Soft delete a user by setting is_active to False."""
     user = db.query(models.User).filter(models.User.id == user_id).first()
@@ -68,6 +72,7 @@ def deactivate_user(db: Session, user_id: int) -> bool:
     db.commit()
     return True
 
+
 def get_user(db: Session, user_id: int):
     return (
         db.query(models.User)
@@ -76,7 +81,9 @@ def get_user(db: Session, user_id: int):
         .first()
     )
 
+
 # --- Department CRUD ---
+
 
 def create_department(db: Session, department: schemas.DepartmentCreate):
     db_dept = models.Department(name=department.name)
@@ -92,7 +99,9 @@ def get_departments(db: Session):
 
 
 def update_department(db: Session, dept_id: int, department: schemas.DepartmentCreate):
-    db_dept = db.query(models.Department).filter(models.Department.id == dept_id).first()
+    db_dept = (
+        db.query(models.Department).filter(models.Department.id == dept_id).first()
+    )
     if not db_dept:
         return None
     db_dept.name = department.name
@@ -102,7 +111,9 @@ def update_department(db: Session, dept_id: int, department: schemas.DepartmentC
 
 
 def delete_department(db: Session, dept_id: int) -> bool:
-    db_dept = db.query(models.Department).filter(models.Department.id == dept_id).first()
+    db_dept = (
+        db.query(models.Department).filter(models.Department.id == dept_id).first()
+    )
     if not db_dept:
         return False
     has_users = (
@@ -121,7 +132,9 @@ def delete_department(db: Session, dept_id: int) -> bool:
     db.commit()
     return True
 
+
 # --- Post CRUD ---
+
 
 def get_posts(db: Session, skip: int = 0, limit: int = 100):
     """
@@ -145,6 +158,7 @@ def get_posts(db: Session, skip: int = 0, limit: int = 100):
         if post.created_at and post.created_at.tzinfo is None:
             post.created_at = post.created_at.replace(tzinfo=timezone.utc)
     return posts
+
 
 def create_post(db: Session, post: schemas.PostCreate, user_id: int):
     """投稿を新規作成します。"""
@@ -172,9 +186,7 @@ def create_post(db: Session, post: schemas.PostCreate, user_id: int):
 
     if mentioned_ids:
         mentioned_users = (
-            db.query(models.User)
-            .filter(models.User.id.in_(mentioned_ids))
-            .all()
+            db.query(models.User).filter(models.User.id.in_(mentioned_ids)).all()
         )
         db_post.mentions.extend(mentioned_users)
     db.add(db_post)
@@ -183,6 +195,7 @@ def create_post(db: Session, post: schemas.PostCreate, user_id: int):
     if db_post.created_at and db_post.created_at.tzinfo is None:
         db_post.created_at = db_post.created_at.replace(tzinfo=timezone.utc)
     return db_post
+
 
 def get_posts_mentioned(
     db: Session,
@@ -216,10 +229,7 @@ def get_posts_mentioned(
         query = query.filter(models.post_mentions.c.user_id == user_id)
 
     posts = (
-        query.order_by(models.Post.created_at.desc())
-        .offset(skip)
-        .limit(limit)
-        .all()
+        query.order_by(models.Post.created_at.desc()).offset(skip).limit(limit).all()
     )
     for post in posts:
         if post.created_at and post.created_at.tzinfo is None:
@@ -322,6 +332,7 @@ def unlike_post(db: Session, post_id: int, user_id: int) -> bool:
 
 
 # --- Report CRUD ---
+
 
 def create_report(db: Session, report: schemas.ReportCreate, reporter_id: int):
     db_report = models.Report(

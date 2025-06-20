@@ -1,4 +1,13 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Table, Boolean, Enum
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    DateTime,
+    ForeignKey,
+    Table,
+    Boolean,
+    Enum,
+)
 from sqlalchemy.orm import relationship
 import enum
 from datetime import datetime, timezone
@@ -12,6 +21,7 @@ class ReportStatus(enum.Enum):
     pending = "pending"
     deleted = "deleted"
     ignored = "ignored"
+
 
 # Association table for Post mentions
 post_mentions = Table(
@@ -47,13 +57,17 @@ class Department(Base):
     # backreference to users
     users = relationship("User", back_populates="department")
 
+
 class User(Base):
     __tablename__ = "users"  # データベース内でのテーブル名を指定
 
     # カラム（列）の定義
     id = Column(Integer, primary_key=True, index=True)
     employee_id = Column(String, unique=True, index=True, nullable=False)
-    name = Column(String, default="名無しさん") # ニックネーム機能を見越してデフォルト値設定
+    # kana representation for searching
+    name = Column(String, default="名無しさん")
+    # full display name in any format
+    display_name = Column(String, nullable=False)
     hashed_password = Column(String, nullable=False)
     department_id = Column(Integer, ForeignKey("departments.id"))
     is_admin = Column(Boolean, default=False)
@@ -81,17 +95,18 @@ class User(Base):
         back_populates="likers",
     )
 
+
 class Post(Base):
     __tablename__ = "posts"
 
     # カラム（列）の定義
     id = Column(Integer, primary_key=True, index=True)
-    content = Column(String(140), index=True) # 140文字制限を意識
+    content = Column(String(140), index=True)  # 140文字制限を意識
     created_at = Column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
     )
-    
+
     # 外部キー制約: usersテーブルのidと紐付けます
     author_id = Column(Integer, ForeignKey("users.id"))
 
@@ -153,9 +168,7 @@ class Post(Base):
         names = []
         for dept in self.mention_departments:
             if dept and dept.name:
-                names.append(
-                    jaconv.z2h(dept.name, kana=True, ascii=False, digit=False)
-                )
+                names.append(jaconv.z2h(dept.name, kana=True, ascii=False, digit=False))
         return names
 
     @property
@@ -180,4 +193,8 @@ class Report(Base):
 
     @property
     def status(self) -> ReportStatus:
-        return self.reported_post.report_status if self.reported_post else ReportStatus.pending
+        return (
+            self.reported_post.report_status
+            if self.reported_post
+            else ReportStatus.pending
+        )

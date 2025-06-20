@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import apiClient from '../../services/api';
+import React, { useState, useEffect } from "react";
+import apiClient from "../../services/api";
 
 // ユーザー情報の型を定義
 interface User {
   name: string;
+  display_name: string;
   employee_id: string;
 }
 
@@ -17,10 +18,10 @@ const UserInfo: React.FC = () => {
       try {
         setLoading(true);
         // バックエンドに自身のユーザー情報をリクエストします
-        const response = await apiClient.get<User>('/users/me');
+        const response = await apiClient.get<User>("/users/me");
         setUser(response.data);
       } catch (err) {
-        setError('ユーザー情報の取得に失敗しました。');
+        setError("ユーザー情報の取得に失敗しました。");
         console.error(err);
       } finally {
         setLoading(false);
@@ -42,7 +43,7 @@ const UserInfo: React.FC = () => {
     <div className="p-4 bg-white rounded-lg shadow">
       {user ? (
         <div>
-          <p className="font-bold text-lg text-gray-800">{user.name}</p>
+          <p className="font-bold text-lg text-gray-800">{user.display_name}</p>
           <p className="text-sm text-gray-500">ID: {user.employee_id}</p>
         </div>
       ) : (

@@ -4,6 +4,7 @@ from ..database import SessionLocal
 from .. import crud, schemas, models
 import jaconv
 
+
 def test_read_main():
     """
     FastAPIのドキュメントページ(/docs)が正常に表示されることをテストします。
@@ -153,6 +154,7 @@ def test_user_search_endpoint():
             user_in = schemas.UserCreate(
                 employee_id=f"alpha{i:03d}",
                 name=f"AlphaUser{i}",
+                display_name=f"Alpha User {i}",
                 password="pass",
                 department_id=2 if i % 2 == 0 else 3,
             )
@@ -162,6 +164,7 @@ def test_user_search_endpoint():
             user_in = schemas.UserCreate(
                 employee_id=f"beta{i:03d}",
                 name=f"BetaUser{i}",
+                display_name=f"Beta User {i}",
                 password="pass",
                 department_id=2,
             )
@@ -178,10 +181,10 @@ def test_user_search_endpoint():
         assert resp.status_code == 200
         results = resp.json()
         assert len(results) == 10
-        assert all("Alpha" in u["name"] for u in results)
+        assert all("Alpha" in u["display_name"] for u in results)
         assert all(u["department_name"] in ["2A病棟", "3B病棟"] for u in results)
         for u in results:
-            assert {"id", "name", "department_name"}.issubset(u.keys())
+            assert {"id", "display_name", "department_name"}.issubset(u.keys())
 
         # ensure non-matching query returns empty list
         resp_none = client.get("/users/search", params={"query": "Unknown"})
@@ -224,7 +227,10 @@ def test_post_department_mentions():
 
         resp = client.post(
             "/posts/",
-            json={"content": "dept mention", "mention_department_ids": [user_dept2.department_id]},
+            json={
+                "content": "dept mention",
+                "mention_department_ids": [user_dept2.department_id],
+            },
             headers=headers,
         )
         assert resp.status_code == 201
@@ -238,14 +244,23 @@ def test_post_department_mentions():
 
         resp2 = client.post(
             "/posts/",
-            json={"content": "multi dept", "mention_department_ids": [user_dept2.department_id, user_dept3.department_id]},
+            json={
+                "content": "multi dept",
+                "mention_department_ids": [
+                    user_dept2.department_id,
+                    user_dept3.department_id,
+                ],
+            },
             headers=headers,
         )
         assert resp2.status_code == 201
         data2 = resp2.json()
         ids2 = data2["mention_user_ids"]
         assert ids2 == []
-        assert set(data2["mention_department_ids"]) == {user_dept2.department_id, user_dept3.department_id}
+        assert set(data2["mention_department_ids"]) == {
+            user_dept2.department_id,
+            user_dept3.department_id,
+        }
         assert set(data2["mention_department_names"]) == {
             jaconv.z2h(user_dept2.department.name, kana=True, ascii=False, digit=False),
             jaconv.z2h(user_dept3.department.name, kana=True, ascii=False, digit=False),
@@ -253,7 +268,11 @@ def test_post_department_mentions():
 
         resp3 = client.post(
             "/posts/",
-            json={"content": "dedupe", "mention_user_ids": [user_dept2.id], "mention_department_ids": [user_dept2.department_id]},
+            json={
+                "content": "dedupe",
+                "mention_user_ids": [user_dept2.id],
+                "mention_department_ids": [user_dept2.department_id],
+            },
             headers=headers,
         )
         assert resp3.status_code == 201
