@@ -1,11 +1,17 @@
 import logging
 from sqlalchemy import or_
 from sqlalchemy.orm import Session, joinedload
-from .models import Report, Post
 from datetime import timezone
 from . import models, schemas, auth
 
 logger = logging.getLogger(__name__)
+
+
+def _ensure_utc(dt):
+    """Return datetime with UTC tzinfo if not already set."""
+    if dt and dt.tzinfo is None:
+        return dt.replace(tzinfo=timezone.utc)
+    return dt
 
 # --- User CRUD ---
 
@@ -155,8 +161,7 @@ def get_posts(db: Session, skip: int = 0, limit: int = 100):
         .all()
     )
     for post in posts:
-        if post.created_at and post.created_at.tzinfo is None:
-            post.created_at = post.created_at.replace(tzinfo=timezone.utc)
+        post.created_at = _ensure_utc(post.created_at)
     return posts
 
 
@@ -192,8 +197,7 @@ def create_post(db: Session, post: schemas.PostCreate, user_id: int):
     db.add(db_post)
     db.commit()
     db.refresh(db_post)
-    if db_post.created_at and db_post.created_at.tzinfo is None:
-        db_post.created_at = db_post.created_at.replace(tzinfo=timezone.utc)
+    db_post.created_at = _ensure_utc(db_post.created_at)
     return db_post
 
 
@@ -232,8 +236,7 @@ def get_posts_mentioned(
         query.order_by(models.Post.created_at.desc()).offset(skip).limit(limit).all()
     )
     for post in posts:
-        if post.created_at and post.created_at.tzinfo is None:
-            post.created_at = post.created_at.replace(tzinfo=timezone.utc)
+        post.created_at = _ensure_utc(post.created_at)
     return posts
 
 
@@ -252,8 +255,7 @@ def get_all_posts(db: Session):
         .all()
     )
     for post in posts:
-        if post.created_at and post.created_at.tzinfo is None:
-            post.created_at = post.created_at.replace(tzinfo=timezone.utc)
+        post.created_at = _ensure_utc(post.created_at)
     return posts
 
 
@@ -273,8 +275,7 @@ def get_reported_posts(db: Session):
         .all()
     )
     for post in posts:
-        if post.created_at and post.created_at.tzinfo is None:
-            post.created_at = post.created_at.replace(tzinfo=timezone.utc)
+        post.created_at = _ensure_utc(post.created_at)
     return posts
 
 
@@ -293,8 +294,7 @@ def get_deleted_posts(db: Session):
         .all()
     )
     for post in posts:
-        if post.created_at and post.created_at.tzinfo is None:
-            post.created_at = post.created_at.replace(tzinfo=timezone.utc)
+        post.created_at = _ensure_utc(post.created_at)
     return posts
 
 
@@ -343,8 +343,7 @@ def create_report(db: Session, report: schemas.ReportCreate, reporter_id: int):
     db.add(db_report)
     db.commit()
     db.refresh(db_report)
-    if db_report.reported_at and db_report.reported_at.tzinfo is None:
-        db_report.reported_at = db_report.reported_at.replace(tzinfo=timezone.utc)
+    db_report.reported_at = _ensure_utc(db_report.reported_at)
     return db_report
 
 
@@ -359,8 +358,7 @@ def get_reports(db: Session):
         .all()
     )
     for r in reports:
-        if r.reported_at and r.reported_at.tzinfo is None:
-            r.reported_at = r.reported_at.replace(tzinfo=timezone.utc)
+        r.reported_at = _ensure_utc(r.reported_at)
     return reports
 
 

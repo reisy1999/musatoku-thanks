@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 # これまでに作成した各モジュールをインポート
 from . import crud, models, schemas, auth
 from .database import SessionLocal, engine, Base
+from .dependencies import get_db, oauth2_scheme
 from .routers.admin import users as admin_users
 from .routers.admin import departments as admin_departments
 from .routers.admin import posts as admin_posts
@@ -130,17 +131,6 @@ def on_startup():
 
 # --- 依存関係 ---
 
-
-def get_db():
-    """各リクエストでデータベースセッションを生成し、完了後に閉じるための依存関係"""
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 oauth2_scheme_optional = OAuth2PasswordBearer(tokenUrl="token", auto_error=False)
 
 
