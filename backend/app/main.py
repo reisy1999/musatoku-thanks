@@ -238,7 +238,11 @@ def read_mentioned_posts(
     current_user: schemas.User = Depends(get_current_user),
 ):
     """Retrieve posts where the current user is mentioned."""
-    posts = crud.get_posts_mentioned(db, user_id=current_user.id)
+    posts = crud.get_posts_mentioned(
+        db,
+        user_id=current_user.id,
+        department_id=current_user.department_id,
+    )
     result = []
     for p in posts:
         result.append(

@@ -76,6 +76,7 @@ def test_post_mentions():
         me_resp = client.get("/users/me", headers=headers)
         assert me_resp.status_code == 200
         user_id = me_resp.json()["id"]
+        dept_id = me_resp.json()["department_id"]
 
         # create post mentioning the current user
         post_resp = client.post(
@@ -102,7 +103,7 @@ def test_get_posts_mentioned():
         me_resp = client.get("/users/me", headers=headers)
         assert me_resp.status_code == 200
         user_id = me_resp.json()["id"]
-
+        dept_id = me_resp.json()["department_id"]
         mention_resp = client.post(
             "/posts/",
             json={"content": "mention timeline", "mention_user_ids": [user_id]},
@@ -119,12 +120,21 @@ def test_get_posts_mentioned():
         assert non_mention_resp.status_code == 201
         non_mention_id = non_mention_resp.json()["id"]
 
+        dept_mention_resp = client.post(
+            "/posts/",
+            json={"content": "dept mention", "mention_department_ids": [dept_id]},
+            headers=headers,
+        )
+        assert dept_mention_resp.status_code == 201
+        dept_mention_id = dept_mention_resp.json()["id"]
+
         timeline_resp = client.get("/posts/mentioned", headers=headers)
         assert timeline_resp.status_code == 200
         posts = timeline_resp.json()
 
         ids = [p["id"] for p in posts]
         assert mention_id in ids
+        assert dept_mention_id in ids
         assert non_mention_id not in ids
 
         # ensure posts are sorted by created_at descending
@@ -196,7 +206,7 @@ def test_list_departments():
 
 
 def test_post_department_mentions():
-    """department mentions expand to user mentions"""
+    """department mentions are stored without expanding to users"""
     with TestClient(app) as client:
         token_resp = client.post(
             "/token",
@@ -220,8 +230,7 @@ def test_post_department_mentions():
         assert resp.status_code == 201
         data = resp.json()
         ids = data["mention_user_ids"]
-        assert user_dept2.id in ids
-        assert user_dept3.id not in ids
+        assert ids == []
         assert data["mention_department_ids"] == [user_dept2.department_id]
         assert data["mention_department_names"] == [
             jaconv.z2h(user_dept2.department.name, kana=True, ascii=False, digit=False)
@@ -235,7 +244,7 @@ def test_post_department_mentions():
         assert resp2.status_code == 201
         data2 = resp2.json()
         ids2 = data2["mention_user_ids"]
-        assert user_dept2.id in ids2 and user_dept3.id in ids2
+        assert ids2 == []
         assert set(data2["mention_department_ids"]) == {user_dept2.department_id, user_dept3.department_id}
         assert set(data2["mention_department_names"]) == {
             jaconv.z2h(user_dept2.department.name, kana=True, ascii=False, digit=False),
@@ -250,7 +259,7 @@ def test_post_department_mentions():
         assert resp3.status_code == 201
         data3 = resp3.json()
         ids3 = data3["mention_user_ids"]
-        assert ids3.count(user_dept2.id) == 1
+        assert ids3 == [user_dept2.id]
         assert data3["mention_department_ids"] == [user_dept2.department_id]
         assert data3["mention_department_names"] == [
             jaconv.z2h(user_dept2.department.name, kana=True, ascii=False, digit=False)

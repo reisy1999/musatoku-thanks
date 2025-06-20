@@ -1,4 +1,5 @@
 import logging
+from sqlalchemy import or_
 from sqlalchemy.orm import Session, joinedload
 from .models import Report, Post
 from datetime import timezone
@@ -149,20 +150,25 @@ def create_post(db: Session, post: schemas.PostCreate, user_id: int):
     """投稿を新規作成します。"""
     db_post = models.Post(content=post.content, author_id=user_id)
     mentioned_ids: set[int] = set(post.mention_user_ids or [])
+
     if getattr(post, "mention_department_ids", None):
+        # Retrieve department users for notification purposes only
         dept_user_rows = (
             db.query(models.User.id)
             .filter(models.User.department_id.in_(post.mention_department_ids))
             .all()
         )
-        for uid, in dept_user_rows:
-            mentioned_ids.add(uid)
+        department_user_ids = {uid for uid, in dept_user_rows}
+
+        # Associate departments with the post but do not expand to mentions
         departments = (
             db.query(models.Department)
             .filter(models.Department.id.in_(post.mention_department_ids))
             .all()
         )
         db_post.mention_departments.extend(departments)
+
+        # The department_user_ids can be used for notifications if needed
 
     if mentioned_ids:
         mentioned_users = (
@@ -178,19 +184,39 @@ def create_post(db: Session, post: schemas.PostCreate, user_id: int):
         db_post.created_at = db_post.created_at.replace(tzinfo=timezone.utc)
     return db_post
 
-def get_posts_mentioned(db: Session, user_id: int, skip: int = 0, limit: int = 100):
-    """Retrieve posts where the given user is mentioned."""
-    posts = (
+def get_posts_mentioned(
+    db: Session,
+    user_id: int,
+    department_id: int | None = None,
+    skip: int = 0,
+    limit: int = 100,
+):
+    """Retrieve posts where the given user or their department is mentioned."""
+
+    query = (
         db.query(models.Post)
-        .join(models.post_mentions)
+        .outerjoin(models.post_mentions)
+        .outerjoin(models.post_department_mentions)
         .options(
             joinedload(models.Post.mentions),
             joinedload(models.Post.mention_departments),
             joinedload(models.Post.likers),
         )
-        .filter(models.post_mentions.c.user_id == user_id)
         .filter(models.Post.is_deleted == False)
-        .order_by(models.Post.created_at.desc())
+    )
+
+    if department_id is not None:
+        query = query.filter(
+            or_(
+                models.post_mentions.c.user_id == user_id,
+                models.post_department_mentions.c.department_id == department_id,
+            )
+        )
+    else:
+        query = query.filter(models.post_mentions.c.user_id == user_id)
+
+    posts = (
+        query.order_by(models.Post.created_at.desc())
         .offset(skip)
         .limit(limit)
         .all()
