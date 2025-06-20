@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException, status, Response
 import csv
 import io
+from datetime import datetime, timezone, timedelta
 
 from ... import models, schemas, crud
 from ...dependencies import get_db, require_admin
@@ -11,13 +12,32 @@ from ...dependencies import get_db, require_admin
 router = APIRouter(prefix="/admin/users", tags=["admin"])
 
 
-@router.get("/", response_model=list[schemas.User])
+@router.get("/", response_model=list[schemas.AdminUser])
 def list_users(
     db: Session = Depends(get_db),
     _: schemas.User = Depends(require_admin),
 ):
-    """List all registered users."""
-    return crud.get_users(db)
+    """List all registered users with login status."""
+    users = crud.get_users(db)
+    now = datetime.now(timezone.utc)
+    result: list[schemas.AdminUser] = []
+    for u in users:
+        logged_in = False
+        if u.last_seen:
+            logged_in = now - u.last_seen <= timedelta(minutes=5)
+        result.append(
+            schemas.AdminUser(
+                id=u.id,
+                employee_id=u.employee_id,
+                display_name=u.display_name,
+                kana_name=u.name,
+                department_name=u.department_name,
+                is_admin=u.is_admin,
+                is_active=u.is_active,
+                is_logged_in=logged_in,
+            )
+        )
+    return result
 
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)

@@ -3,11 +3,13 @@ import apiClient from '../../services/api';
 
 interface AdminUser {
   id: number;
-  name: string;
   employee_id: string;
+  display_name: string;
+  kana_name: string;
   department_name?: string | null;
   is_admin: boolean;
   is_active: boolean;
+  is_logged_in: boolean;
 }
 
 const UserAdminPanel: React.FC = () => {
@@ -70,19 +72,28 @@ const UserAdminPanel: React.FC = () => {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Name
+                  ID
                 </th>
                 <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Employee ID
                 </th>
                 <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Display Name
+                </th>
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Kana Name
+                </th>
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Department
                 </th>
                 <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Admin
+                  Role
                 </th>
                 <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
+                </th>
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Login
                 </th>
                 <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
@@ -92,20 +103,26 @@ const UserAdminPanel: React.FC = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {users.map((u) => (
                 <tr key={u.id} className="hover:bg-gray-50">
-                  <td className="px-3 py-2 whitespace-nowrap">{u.name}</td>
+                  <td className="px-3 py-2 whitespace-nowrap">{u.id}</td>
                   <td className="px-3 py-2 whitespace-nowrap">{u.employee_id}</td>
+                  <td className="px-3 py-2 whitespace-nowrap">{u.display_name}</td>
+                  <td className="px-3 py-2 whitespace-nowrap">{u.kana_name}</td>
                   <td className="px-3 py-2 whitespace-nowrap">
                     {u.department_name ?? ''}
                   </td>
                   <td className="px-3 py-2 whitespace-nowrap">
-                    {u.is_admin && (
-                      <span className="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded">
-                        Admin
-                      </span>
-                    )}
+                    {u.is_admin ? '管理者' : '一般'}
                   </td>
                   <td className="px-3 py-2 whitespace-nowrap">
-                    {u.is_active ? 'Active' : 'Inactive'}
+                    {u.is_active ? '在職' : '退職'}
+                  </td>
+                  <td className="px-3 py-2 whitespace-nowrap">
+                    {u.is_logged_in && (
+                      <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                      </span>
+                    )}
                   </td>
                   <td className="px-3 py-2 whitespace-nowrap">
                     <button

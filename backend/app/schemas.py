@@ -1,4 +1,4 @@
-from pydantic import BaseModel, constr, field_validator
+from pydantic import BaseModel, constr, field_validator, Field, ConfigDict
 from enum import Enum
 import jaconv
 from datetime import datetime
@@ -99,6 +99,19 @@ class UserSearchResult(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class AdminUser(BaseModel):
+    id: int
+    employee_id: str
+    display_name: str
+    kana_name: str = Field(alias="name")
+    department_name: Optional[str] = None
+    is_admin: bool = False
+    is_active: bool = True
+    is_logged_in: bool = False
+
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 
 # --- Department Schemas ---
