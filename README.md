@@ -205,7 +205,17 @@ pytest
       * **解決策:** `cp backend/.env.example backend/.env` が実行されていること、および `backend/.env` に有効な設定、特に `SECRET_KEY` と `DATABASE_URL` が含まれていることを確認してください。
   * **Dockerの問題:** Docker Desktop（またはDockerデーモン）が実行されていることを確認してください。
       * **解決策:** Docker Desktopを起動してください。`docker logs <container_name>` を使用して、特定の`Docker`エラーメッセージのログを確認してください。
-  * **`npm install` または `pip install` エラー:** これは通常、ネットワークの問題またはキャッシュの破損を示します。
+* **`npm install` または `pip install` エラー:** これは通常、ネットワークの問題またはキャッシュの破損を示します。
       * **解決策:** npmキャッシュをクリアするか（`npm cache clean --force`）、pipキャッシュをクリアしてみてください。アクティブなインターネット接続があることを確認してください。
+
+## 11\. ユーザーCSVインポート
+
+管理者は `/admin/users/import` エンドポイントからCSVファイルをアップロードしてユーザーを一括作成できます。CSVには以下のヘッダーを含めてください。
+
+```
+user_id,name,display_name,department,email
+```
+
+`display_name` 列がない場合は `name` の値がそのまま表示名として使用されます。サンプルファイル `backend/users_import_template.csv` も参考にしてください。
 
 -----
