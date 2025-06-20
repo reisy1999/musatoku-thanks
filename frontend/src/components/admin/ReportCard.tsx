@@ -11,20 +11,6 @@ type Props = {
   report: Report;
 };
 
-const badgeClass = (status: string) => {
-  const base = 'px-2 py-0.5 rounded text-xs';
-  switch (status) {
-    case 'deleted':
-      return `${base} bg-red-100 text-red-800`;
-    case 'ignored':
-      return `${base} bg-blue-100 text-blue-800`;
-    case 'pending':
-      return `${base} bg-yellow-100 text-yellow-800`;
-    default:
-      return `${base} bg-gray-100 text-gray-800`;
-  }
-};
-
 const ReportCard: React.FC<Props> = ({ report }) => {
   return (
     <div className="text-sm space-y-1">
