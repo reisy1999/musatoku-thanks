@@ -2,6 +2,12 @@ import React, { useState, useEffect } from 'react';
 import apiClient from '../../services/api';
 import jaconv from 'jaconv';
 
+interface Mention {
+  id: number;
+  name: string;
+  type: 'user' | 'department';
+}
+
 // 親コンポーネントから受け取るPropsの型を定義
 type CreatePostModalProps = {
   onClose: () => void;
@@ -16,14 +22,17 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
   const [normalizedQuery, setNormalizedQuery] = useState('');
   const [mentionError, setMentionError] = useState('');
   const [mentionType, setMentionType] = useState<'user' | 'department'>('user');
-  type MentionTarget = { id: number; name: string; type: 'user' | 'department' };
-  type UserSearchResult = { id: number; name: string; department_name?: string | null };
+  type UserSearchResult = {
+    id: number;
+    name: string;
+    department_id?: number | null;
+    department_name?: string | null;
+  };
   type Department = { id: number; name: string };
 
   const [searchResults, setSearchResults] = useState<UserSearchResult[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
-  const [selectedMentions, setSelectedMentions] = useState<MentionTarget[]>([]);
-  const [selectedDepartments, setSelectedDepartments] = useState<number[]>([]);
+  const [selectedMentions, setSelectedMentions] = useState<Mention[]>([]);
   const [isComposing, setIsComposing] = useState(false);
   const MAX_CHARS = 140;
 
@@ -85,6 +94,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
           console.error(err);
         }
       };
+
       fetchDepts();
     }
   }, [mentionType]);
@@ -132,7 +142,11 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
       const mention_user_ids = selectedMentions
         .filter((m) => m.type === 'user')
         .map((m) => m.id);
-      const mention_department_ids = selectedDepartments;
+
+      const mention_department_ids = selectedMentions
+        .filter((m) => m.type === 'department')
+        .map((m) => m.id);
+
       await apiClient.post('/posts/', {
         content,
         mention_user_ids,
@@ -214,7 +228,6 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
                       ...selectedMentions,
                       { id, name: dept.name, type: 'department' },
                     ]);
-                    setSelectedDepartments([...selectedDepartments, id]);
                     (e.target as HTMLSelectElement).value = '';
                   }}
                   className="w-full p-2 rounded-md text-sm border border-gray-300"
@@ -266,16 +279,9 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
                     type="button"
                     className="ml-1"
                   onClick={() =>
-                      {
-                        setSelectedMentions(
-                          selectedMentions.filter((m) => m.id !== u.id),
-                        );
-                        if (u.type === 'department') {
-                          setSelectedDepartments(
-                            selectedDepartments.filter((d) => d !== u.id),
-                          );
-                        }
-                      }
+                      setSelectedMentions(
+                        selectedMentions.filter((m) => m.id !== u.id),
+                      )
                   }
                 >
                     &times;
