@@ -72,6 +72,12 @@ class User(Base):
     department_id = Column(Integer, ForeignKey("departments.id"))
     is_admin = Column(Boolean, default=False)
     is_active = Column(Boolean, default=True)
+    # last activity timestamp for login status
+    last_seen = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
 
     department = relationship("Department", back_populates="users")
 

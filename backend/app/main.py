@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt  # JWTError, jwtをインポート
+from datetime import datetime, timezone
 
 # これまでに作成した各モジュールをインポート
 from . import crud, models, schemas, auth
@@ -163,6 +164,9 @@ async def get_current_user(
     user = crud.get_user_by_employee_id(db, employee_id=token_data.employee_id)
     if user is None:
         raise credentials_exception
+    user.last_seen = datetime.now(timezone.utc)
+    db.add(user)
+    db.commit()
     return user
 
 
@@ -180,7 +184,13 @@ async def get_current_user_optional(
         token_data = schemas.TokenData(employee_id=employee_id)
     except JWTError:
         return None
-    return crud.get_user_by_employee_id(db, employee_id=token_data.employee_id)
+    user = crud.get_user_by_employee_id(db, employee_id=token_data.employee_id)
+    if not user:
+        return None
+    user.last_seen = datetime.now(timezone.utc)
+    db.add(user)
+    db.commit()
+    return user
 
 
 # --- APIエンドポイント ---
@@ -199,6 +209,9 @@ async def login_for_access_token(
             headers={"WWW-Authenticate": "Bearer"},
         )
     access_token = auth.create_access_token(data={"sub": user.employee_id})
+    user.last_seen = datetime.now(timezone.utc)
+    db.add(user)
+    db.commit()
     return {"access_token": access_token, "token_type": "bearer"}
 
 
