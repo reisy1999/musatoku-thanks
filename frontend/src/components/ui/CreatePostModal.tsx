@@ -222,7 +222,12 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
                     if (!id) return;
                     const dept = departments.find((d) => d.id === id);
                     if (!dept) return;
-                    if (selectedMentions.find((m) => m.id === id)) return;
+                    if (
+                      selectedMentions.some(
+                        (m) => m.id === id && m.type === 'department',
+                      )
+                    )
+                      return;
                     setSelectedMentions([
                       ...selectedMentions,
                       { id, name: dept.name, type: 'department' },
@@ -246,11 +251,13 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
               <ul className="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 max-h-40 overflow-y-auto">
                 {searchResults.map((u) => (
                   <li
-                    key={u.id}
+                    key={`user-${u.id}`}
                     className="p-2 hover:bg-gray-100 cursor-pointer"
                     onClick={() => {
                       if (
-                        selectedMentions.find((m) => m.id === u.id) ||
+                        selectedMentions.some(
+                          (m) => m.id === u.id && m.type === 'user',
+                        ) ||
                         selectedMentions.length >= 3
                       )
                         return;
@@ -270,7 +277,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
             <div className="flex flex-wrap gap-2 mt-2">
               {selectedMentions.map((u) => (
                 <span
-                  key={u.id}
+                  key={`${u.type}-${u.id}`}
                   className="bg-blue-100 text-blue-700 px-2 py-1 rounded flex items-center"
                 >
                   {u.name}
@@ -279,7 +286,9 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostSucces
                     className="ml-1"
                   onClick={() =>
                       setSelectedMentions(
-                        selectedMentions.filter((m) => m.id !== u.id),
+                        selectedMentions.filter(
+                          (m) => !(m.id === u.id && m.type === u.type),
+                        ),
                       )
                   }
                 >
