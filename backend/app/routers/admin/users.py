@@ -53,6 +53,9 @@ async def import_users(
     for row in reader:
         user_id = (row.get("user_id") or "").strip()
         name = (row.get("name") or "").strip()
+        display_name = (row.get("display_name") or "").strip()
+        if not display_name:
+            display_name = name
         department_name = (row.get("department") or "").strip()
         email = (row.get("email") or "").strip()
 
@@ -78,6 +81,7 @@ async def import_users(
         user_in = schemas.UserCreate(
             employee_id=user_id,
             name=name,
+            display_name=display_name,
             password=user_id,
             department_id=dept.id,
         )
@@ -85,4 +89,3 @@ async def import_users(
         added += 1
 
     return {"added": added, "skipped": skipped}
-

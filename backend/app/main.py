@@ -3,7 +3,7 @@ from fastapi import FastAPI, Depends, HTTPException, status, Response
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from jose import JWTError, jwt # JWTError, jwtをインポート
+from jose import JWTError, jwt  # JWTError, jwtをインポート
 
 # これまでに作成した各モジュールをインポート
 from . import crud, models, schemas, auth
@@ -40,6 +40,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.on_event("startup")
 def on_startup():
     """アプリ起動時の初期データ登録を行います"""
@@ -54,7 +55,11 @@ def on_startup():
     ]
 
     for dept in departments:
-        existing = db.query(models.Department).filter(models.Department.id == dept["id"]).first()
+        existing = (
+            db.query(models.Department)
+            .filter(models.Department.id == dept["id"])
+            .first()
+        )
         if existing:
             existing.name = dept["name"]
         else:
@@ -66,30 +71,35 @@ def on_startup():
         {
             "employee_id": "000000",
             "name": "ﾃｽﾄﾕｰｻﾞｰ",
+            "display_name": "テストユーザー",
             "password": "pass",
             "department_id": 0,
         },
         {
             "employee_id": "000001",
             "name": "ﾃｽﾄｲﾁ",
+            "display_name": "テストイチ",
             "password": "000001",
             "department_id": 2,
         },
         {
             "employee_id": "000002",
             "name": "ﾃｽﾄﾆ",
+            "display_name": "テストニ",
             "password": "000002",
             "department_id": 3,
         },
         {
             "employee_id": "000003",
             "name": "ﾃｽﾄｻﾝ",
+            "display_name": "テストサン",
             "password": "000003",
             "department_id": 4,
         },
         {
             "employee_id": "999999",
             "name": "ﾃｽﾄｶﾝﾘｼｬ",
+            "display_name": "テスト管理者",
             "password": "admin",
             "department_id": 0,
             "is_admin": True,
@@ -100,8 +110,11 @@ def on_startup():
         user = crud.get_user_by_employee_id(db, employee_id=user_data["employee_id"])
         if user:
             user.department_id = user_data["department_id"]
-            normalized = schemas.UserUpdate(name=user_data["name"])
+            normalized = schemas.UserUpdate(
+                name=user_data["name"], display_name=user_data["display_name"]
+            )
             user.name = normalized.name
+            user.display_name = normalized.display_name or user_data["display_name"]
             user.hashed_password = auth.get_password_hash(user_data["password"])
             user.is_admin = user_data.get("is_admin", False)
             db.commit()
@@ -113,7 +126,9 @@ def on_startup():
 
     db.close()
 
+
 # --- 依存関係 ---
+
 
 def get_db():
     """各リクエストでデータベースセッションを生成し、完了後に閉じるための依存関係"""
@@ -123,10 +138,14 @@ def get_db():
     finally:
         db.close()
 
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 oauth2_scheme_optional = OAuth2PasswordBearer(tokenUrl="token", auto_error=False)
 
-async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+
+async def get_current_user(
+    token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
+):
     """リクエストのヘッダーからトークンを検証し、現在のユーザー情報を取得する依存関係"""
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -145,6 +164,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
     if user is None:
         raise credentials_exception
     return user
+
 
 async def get_current_user_optional(
     token: str | None = Depends(oauth2_scheme_optional),
@@ -165,8 +185,11 @@ async def get_current_user_optional(
 
 # --- APIエンドポイント ---
 
+
 @app.post("/token", response_model=schemas.Token)
-async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+async def login_for_access_token(
+    form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
+):
     """ログインしてアクセストークンを取得するエンドポイント"""
     user = crud.get_user_by_employee_id(db, employee_id=form_data.username)
     if not user or not auth.verify_password(form_data.password, user.hashed_password):
@@ -177,6 +200,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
         )
     access_token = auth.create_access_token(data={"sub": user.employee_id})
     return {"access_token": access_token, "token_type": "bearer"}
+
 
 @app.get("/users/me", response_model=schemas.User)
 async def read_users_me(current_user: schemas.User = Depends(get_current_user)):
@@ -198,6 +222,7 @@ def list_departments(db: Session = Depends(get_db)):
     """Public endpoint to retrieve all departments."""
     return crud.get_departments(db)
 
+
 @app.get("/posts/", response_model=list[schemas.Post])
 def read_posts(
     db: Session = Depends(get_db),
@@ -217,15 +242,22 @@ def read_posts(
                 mention_user_names=p.mention_user_names,
                 mention_department_names=p.mention_department_names,
                 like_count=p.like_count,
-                liked_by_me=current_user.id in [u.id for u in p.likers]
-                if current_user
-                else False,
+                liked_by_me=(
+                    current_user.id in [u.id for u in p.likers]
+                    if current_user
+                    else False
+                ),
             )
         )
     return result
 
+
 @app.post("/posts/", response_model=schemas.Post, status_code=status.HTTP_201_CREATED)
-def create_post_for_user(post: schemas.PostCreate, db: Session = Depends(get_db), current_user: schemas.User = Depends(get_current_user)):
+def create_post_for_user(
+    post: schemas.PostCreate,
+    db: Session = Depends(get_db),
+    current_user: schemas.User = Depends(get_current_user),
+):
     """ログイン中のユーザーとして新しい投稿を作成するエンドポイント"""
     # ここでログ出力を実装すれば、誰がいつ投稿したかのログが取れます
     logger.info("User '%s' is creating a post.", current_user.employee_id)
@@ -285,7 +317,9 @@ def unlike_post_endpoint(
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@app.post("/reports", response_model=schemas.ReportOut, status_code=status.HTTP_201_CREATED)
+@app.post(
+    "/reports", response_model=schemas.ReportOut, status_code=status.HTTP_201_CREATED
+)
 def create_report(
     report: schemas.ReportCreate,
     db: Session = Depends(get_db),
@@ -302,6 +336,7 @@ def create_report(
         post_content=created.reported_post.content if created.reported_post else None,
         status=created.status.value,
     )
+
 
 # include routers
 app.include_router(admin_users.router)

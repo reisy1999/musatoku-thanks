@@ -22,13 +22,16 @@ def test_admin_delete_user():
             schemas.UserCreate(
                 employee_id=unique_emp_id,
                 name="Delete User",
+                display_name="Delete User",
                 password="pass",
                 department_id=2,
             ),
         )
         db.close()
 
-        resp = client.delete(f"/admin/users/{new_user.id}", headers={"Authorization": f"Bearer {token}"})
+        resp = client.delete(
+            f"/admin/users/{new_user.id}", headers={"Authorization": f"Bearer {token}"}
+        )
         assert resp.status_code == 204
 
         db = SessionLocal()
@@ -79,7 +82,9 @@ def test_admin_list_and_delete_posts():
             jaconv.z2h(dept_name, kana=True, ascii=False, digit=False)
         ]
 
-        del_resp = client.delete(f"/admin/posts/{p1_id}", headers={"Authorization": f"Bearer {token}"})
+        del_resp = client.delete(
+            f"/admin/posts/{p1_id}", headers={"Authorization": f"Bearer {token}"}
+        )
         assert del_resp.status_code == 204
 
         db = SessionLocal()
@@ -91,7 +96,9 @@ def test_admin_list_departments():
     with TestClient(app) as client:
         token = _get_admin_token(client)
 
-        resp = client.get("/admin/departments", headers={"Authorization": f"Bearer {token}"})
+        resp = client.get(
+            "/admin/departments", headers={"Authorization": f"Bearer {token}"}
+        )
         assert resp.status_code == 200
         depts = resp.json()
         expected = jaconv.z2h("テスト部署", kana=True, ascii=False, digit=False)
@@ -113,10 +120,10 @@ def test_import_users():
         token = _get_admin_token(client)
         unique_id = "imp" + str(uuid.uuid4())[:8]
         csv_data = (
-            "user_id,name,department,email\n"
-            f"{unique_id},Import User,ImportedDept,imp1@example.com\n"
-            "000000,Existing,ImportedDept,existing@example.com\n"
-            ",Missing,ImportedDept,missing@example.com\n"
+            "user_id,name,display_name,department,email\n"
+            f"{unique_id},kana1,Import User,ImportedDept,imp1@example.com\n"
+            "000000,Existing,Existing,ImportedDept,existing@example.com\n"
+            ",Missing,,ImportedDept,missing@example.com\n"
         )
         files = {"file": ("users.csv", csv_data, "text/csv")}
         resp = client.post(
@@ -132,6 +139,6 @@ def test_import_users():
         db = SessionLocal()
         created = crud.get_user_by_employee_id(db, unique_id)
         assert created is not None
+        assert created.display_name == "Import User"
         assert created.department.name == "ImportedDept"
         db.close()
-
