@@ -20,23 +20,6 @@ type TimelineProps = {
   endpoint: string;
 };
 
-// 日付を見やすい形式（例：「5分前」）に変換するヘルパー関数
-const formatRelativeTime = (isoString: string): string => {
-  const now = new Date();
-  const past = new Date(isoString);
-  const diffInSeconds = Math.floor((now.getTime() - past.getTime()) / 1000);
-
-  const minutes = Math.floor(diffInSeconds / 60);
-  if (minutes < 1) return "たった今";
-  if (minutes < 60) return `${minutes}分前`;
-
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}時間前`;
-
-  const days = Math.floor(hours / 24);
-  return `${days}日前`;
-};
-
 const Timeline: React.FC<TimelineProps> = ({
   postSuccessTrigger,
   endpoint,
