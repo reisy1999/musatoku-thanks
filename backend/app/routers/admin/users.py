@@ -6,6 +6,8 @@ import csv
 import io
 from datetime import datetime, timezone, timedelta
 
+from ...utils import normalize_to_utc
+
 from ... import models, schemas, crud
 from ...dependencies import get_db, require_admin
 
@@ -25,7 +27,8 @@ def list_users(
     for u in users:
         logged_in = False
         if u.last_seen:
-            logged_in = now - u.last_seen <= timedelta(minutes=5)
+            last_seen = normalize_to_utc(u.last_seen)
+            logged_in = now - last_seen <= timedelta(minutes=5)
         result.append(
             schemas.AdminUser(
                 id=u.id,
