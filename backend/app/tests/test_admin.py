@@ -142,3 +142,22 @@ def test_import_users():
         assert created.display_name == "Import User"
         assert created.department.name == "ImportedDept"
         db.close()
+
+
+def test_export_users():
+    with TestClient(app) as client:
+        token = _get_admin_token(client)
+
+        resp = client.get(
+            "/admin/users/export", headers={"Authorization": f"Bearer {token}"}
+        )
+        assert resp.status_code == 200
+        assert resp.headers["content-type"].startswith("text/csv")
+        csv_lines = resp.text.strip().splitlines()
+        assert csv_lines[0] == "id,employee_id,display_name,kana_name,department_name,is_admin,is_active"
+
+        db = SessionLocal()
+        user = crud.get_user_by_employee_id(db, "000000")
+        db.close()
+        # ensure the CSV contains the default user
+        assert any(str(user.id) in line and user.employee_id in line for line in csv_lines[1:])

@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, UploadFile, File
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status, Response
 import csv
@@ -38,6 +39,43 @@ def list_users(
             )
         )
     return result
+
+
+@router.get("/export")
+def export_users(
+    db: Session = Depends(get_db),
+    _: schemas.User = Depends(require_admin),
+):
+    """Export user list as CSV."""
+    users = crud.get_users(db)
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(
+        [
+            "id",
+            "employee_id",
+            "display_name",
+            "kana_name",
+            "department_name",
+            "is_admin",
+            "is_active",
+        ]
+    )
+    for u in users:
+        writer.writerow(
+            [
+                u.id,
+                u.employee_id,
+                u.display_name,
+                u.name,
+                u.department_name or "",
+                "管理者" if u.is_admin else "一般",
+                "在職" if u.is_active else "退職",
+            ]
+        )
+    output.seek(0)
+    headers = {"Content-Disposition": "attachment; filename=users.csv"}
+    return StreamingResponse(output, media_type="text/csv", headers=headers)
 
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)

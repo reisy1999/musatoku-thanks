@@ -60,6 +60,25 @@ const UserAdminPanel: React.FC = () => {
     }
   };
 
+  const handleExport = async () => {
+    try {
+      const resp = await apiClient.get('/admin/users/export', {
+        responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(new Blob([resp.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'users.csv');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+      setError('CSVのダウンロードに失敗しました。');
+    }
+  };
+
   return (
     <div className="p-4">
       {loading ? (
@@ -67,7 +86,14 @@ const UserAdminPanel: React.FC = () => {
       ) : error ? (
         <p className="text-red-500">{error}</p>
       ) : (
-        <div className="overflow-x-auto">
+        <div>
+          <button
+            onClick={handleExport}
+            className="mb-2 bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700"
+          >
+            Export CSV
+          </button>
+          <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
@@ -137,6 +163,7 @@ const UserAdminPanel: React.FC = () => {
               ))}
             </tbody>
           </table>
+        </div>
         </div>
       )}
     </div>
