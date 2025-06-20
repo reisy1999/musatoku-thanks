@@ -107,3 +107,31 @@ def test_delete_department_with_refs():
         )
         assert resp.status_code == 400
 
+
+def test_import_users():
+    with TestClient(app) as client:
+        token = _get_admin_token(client)
+        unique_id = "imp" + str(uuid.uuid4())[:8]
+        csv_data = (
+            "user_id,name,department,email\n"
+            f"{unique_id},Import User,ImportedDept,imp1@example.com\n"
+            "000000,Existing,ImportedDept,existing@example.com\n"
+            ",Missing,ImportedDept,missing@example.com\n"
+        )
+        files = {"file": ("users.csv", csv_data, "text/csv")}
+        resp = client.post(
+            "/admin/users/import",
+            files=files,
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert resp.status_code == 200
+        result = resp.json()
+        assert result["added"] == 1
+        assert result["skipped"] == 2
+
+        db = SessionLocal()
+        created = crud.get_user_by_employee_id(db, unique_id)
+        assert created is not None
+        assert created.department.name == "ImportedDept"
+        db.close()
+
