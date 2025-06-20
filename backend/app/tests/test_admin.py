@@ -161,3 +161,35 @@ def test_export_users():
         db.close()
         # ensure the CSV contains the default user
         assert any(str(user.id) in line and user.employee_id in line for line in csv_lines[1:])
+
+
+def test_admin_list_users_logged_in_naive_timestamp():
+    """Users endpoint should handle naive last_seen timestamps"""
+    with TestClient(app) as client:
+        token = _get_admin_token(client)
+        db = SessionLocal()
+        unique_emp_id = "naive" + str(uuid.uuid4())[:8]
+        new_user = crud.create_user(
+            db,
+            schemas.UserCreate(
+                employee_id=unique_emp_id,
+                name="Naive",
+                display_name="Naive",
+                password="pass",
+                department_id=2,
+            ),
+        )
+        # set last_seen without tzinfo
+        from datetime import datetime, timedelta
+
+        user_id = new_user.id
+        user = db.query(models.User).get(user_id)
+        user.last_seen = datetime.utcnow() - timedelta(minutes=1)
+        db.add(user)
+        db.commit()
+        db.close()
+
+        resp = client.get("/admin/users", headers={"Authorization": f"Bearer {token}"})
+        assert resp.status_code == 200
+        users = resp.json()
+        assert any(u["id"] == user_id and u["is_logged_in"] for u in users)
