@@ -78,7 +78,12 @@ def export_users(
         )
     output.seek(0)
     headers = {"Content-Disposition": "attachment; filename=users.csv"}
-    return StreamingResponse(output, media_type="text/csv", headers=headers)
+    csv_bytes = output.getvalue().encode("utf-8")
+    return StreamingResponse(
+        iter([csv_bytes]),
+        media_type="text/csv; charset=utf-8",
+        headers=headers,
+    )
 
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -102,7 +107,11 @@ async def import_users(
 ):
     """Import users from a CSV file."""
     content = await file.read()
-    csv_file = io.StringIO(content.decode("utf-8"))
+    try:
+        csv_content = content.decode("utf-8")
+    except UnicodeDecodeError:
+        raise HTTPException(status_code=400, detail="File must be UTF-8 encoded")
+    csv_file = io.StringIO(csv_content)
     reader = csv.DictReader(csv_file)
 
     required_fields = {"user_id", "name", "department", "email"}

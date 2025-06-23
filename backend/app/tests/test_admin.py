@@ -144,6 +144,25 @@ def test_import_users():
         db.close()
 
 
+def test_import_users_invalid_encoding():
+    """Import should fail for non UTF-8 encoded files"""
+    with TestClient(app) as client:
+        token = _get_admin_token(client)
+        csv_data = (
+            "user_id,name,display_name,department,email\n"
+            "e001,\u30c6\u30b9\u30c8,Test,General,test@example.com\n"
+        )
+        encoded = csv_data.encode("shift_jis")
+        files = {"file": ("users.csv", encoded, "text/csv")}
+        resp = client.post(
+            "/admin/users/import",
+            files=files,
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert resp.status_code == 400
+        assert "UTF-8" in resp.json().get("detail", "")
+
+
 def test_export_users():
     with TestClient(app) as client:
         token = _get_admin_token(client)
@@ -153,6 +172,7 @@ def test_export_users():
         )
         assert resp.status_code == 200
         assert resp.headers["content-type"].startswith("text/csv")
+        assert "charset=utf-8" in resp.headers["content-type"].lower()
         csv_lines = resp.text.strip().splitlines()
         assert csv_lines[0] == "id,employee_id,display_name,kana_name,department_name,is_admin,is_active"
 
