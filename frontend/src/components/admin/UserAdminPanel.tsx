@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import apiClient from '../../services/api';
 
 interface AdminUser {
@@ -17,6 +17,7 @@ const UserAdminPanel: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const fetchUsers = async () => {
     try {
@@ -79,6 +80,41 @@ const UserAdminPanel: React.FC = () => {
     }
   };
 
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append('file', file);
+    try {
+      const resp = await apiClient.post<{ added: number; skipped: number }>(
+        '/admin/users/import',
+        formData,
+        { headers: { 'Content-Type': 'multipart/form-data' } },
+      );
+      alert(`Import finished\nAdded: ${resp.data.added}\nSkipped: ${resp.data.skipped}`);
+      setError(null);
+      fetchUsers();
+    } catch (err: unknown) {
+      console.error(err);
+      const status = (err as { response?: { status?: number } }).response?.status;
+      const message =
+        status === 400
+          ? 'CSV形式が正しくありません。ヘッダー: user_id,name,display_name,department,email'
+          : 'CSVのインポートに失敗しました。';
+      setError(message);
+    } finally {
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
   return (
     <div className="p-4">
       {loading ? (
@@ -87,12 +123,28 @@ const UserAdminPanel: React.FC = () => {
         <p className="text-red-500">{error}</p>
       ) : (
         <div>
-          <button
-            onClick={handleExport}
-            className="mb-2 bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700"
-          >
-            Export CSV
-          </button>
+          <div className="mb-2 space-x-2">
+            <button
+              onClick={handleImportClick}
+              title="CSV headers: user_id,name,display_name,department,email"
+              className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700"
+            >
+              Import CSV
+            </button>
+            <input
+              type="file"
+              accept=".csv"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              className="hidden"
+            />
+            <button
+              onClick={handleExport}
+              className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700"
+            >
+              Export CSV
+            </button>
+          </div>
           <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
