@@ -66,7 +66,9 @@ const UserAdminPanel: React.FC = () => {
       const resp = await apiClient.get('/admin/users/export', {
         responseType: 'blob',
       });
-      const url = window.URL.createObjectURL(new Blob([resp.data]));
+      const url = window.URL.createObjectURL(
+        new Blob([resp.data], { type: 'text/csv;charset=utf-8;' }),
+      );
       const link = document.createElement('a');
       link.href = url;
       link.setAttribute('download', 'users.csv');
@@ -126,7 +128,7 @@ const UserAdminPanel: React.FC = () => {
           <div className="mb-2 space-x-2">
             <button
               onClick={handleImportClick}
-              title="CSV headers: user_id,name,display_name,department,email"
+              title="CSV headers: user_id,name,display_name,department,email (UTF-8)"
               className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700"
             >
               Import CSV

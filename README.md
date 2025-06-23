@@ -217,5 +217,6 @@ user_id,name,display_name,department,email
 ```
 
 `display_name` 列がない場合は `name` の値がそのまま表示名として使用されます。サンプルファイル `backend/users_import_template.csv` も参考にしてください。
+CSVファイルは必ず **UTF-8 エンコーディング** で保存してください。その他のエンコード形式では文字化けが発生します。
 
 -----
