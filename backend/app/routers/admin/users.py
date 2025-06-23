@@ -79,7 +79,7 @@ def export_users(
         )
     output.seek(0)
     headers = {"Content-Disposition": "attachment; filename=users.csv"}
-    csv_bytes = output.getvalue().encode("utf-8")
+    csv_bytes = output.getvalue().encode("utf-8-sig")
     return StreamingResponse(
         iter([csv_bytes]),
         media_type="text/csv; charset=utf-8",

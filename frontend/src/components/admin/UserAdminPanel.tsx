@@ -66,9 +66,13 @@ const UserAdminPanel: React.FC = () => {
       const resp = await apiClient.get("/admin/users/export", {
         responseType: "blob",
       });
-      const url = window.URL.createObjectURL(
-        new Blob([resp.data], { type: "text/csv;charset=utf-8;" }),
-      );
+      const blob = new Blob([
+        "\uFEFF",
+        resp.data,
+      ], {
+        type: "text/csv;charset=utf-8;",
+      });
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
       link.setAttribute("download", "users.csv");

@@ -195,9 +195,10 @@ def test_export_users():
         assert resp.status_code == 200
         assert resp.headers["content-type"].startswith("text/csv")
         assert "charset=utf-8" in resp.headers["content-type"].lower()
+        assert resp.content.startswith(b"\xef\xbb\xbf")
         csv_lines = resp.text.strip().splitlines()
         assert (
-            csv_lines[0]
+            csv_lines[0].lstrip("\ufeff")
             == "id,employee_id,display_name,kana_name,department_name,is_admin,is_active"
         )
 
