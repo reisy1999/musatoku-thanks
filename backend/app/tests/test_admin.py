@@ -144,6 +144,28 @@ def test_import_users():
         db.close()
 
 
+def test_import_users_conflicting_name():
+    """Import should report mismatched kana name for existing ID"""
+    with TestClient(app) as client:
+        token = _get_admin_token(client)
+        csv_data = (
+            "user_id,name,display_name,department,email\n"
+            "000000,カナチガイ,User,テスト部署,conflict@example.com\n"
+        )
+        files = {"file": ("users.csv", csv_data, "text/csv")}
+        resp = client.post(
+            "/admin/users/import",
+            files=files,
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert resp.status_code == 200
+        result = resp.json()
+        assert result["added"] == 0
+        assert result["skipped"] == 1
+        assert result["errors"]
+        assert "000000" in result["errors"][0]
+
+
 def test_import_users_invalid_encoding():
     """Import should fail for non UTF-8 encoded files"""
     with TestClient(app) as client:
@@ -174,13 +196,18 @@ def test_export_users():
         assert resp.headers["content-type"].startswith("text/csv")
         assert "charset=utf-8" in resp.headers["content-type"].lower()
         csv_lines = resp.text.strip().splitlines()
-        assert csv_lines[0] == "id,employee_id,display_name,kana_name,department_name,is_admin,is_active"
+        assert (
+            csv_lines[0]
+            == "id,employee_id,display_name,kana_name,department_name,is_admin,is_active"
+        )
 
         db = SessionLocal()
         user = crud.get_user_by_employee_id(db, "000000")
         db.close()
         # ensure the CSV contains the default user
-        assert any(str(user.id) in line and user.employee_id in line for line in csv_lines[1:])
+        assert any(
+            str(user.id) in line and user.employee_id in line for line in csv_lines[1:]
+        )
 
 
 def test_admin_list_users_logged_in_naive_timestamp():

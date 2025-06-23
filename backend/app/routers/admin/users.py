@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException, status, Response
 import csv
 import io
+import jaconv
 from datetime import datetime, timezone, timedelta
 
 from ...utils import normalize_to_utc
@@ -120,6 +121,7 @@ async def import_users(
 
     added = 0
     skipped = 0
+    errors: list[str] = []
     for row in reader:
         user_id = (row.get("user_id") or "").strip()
         name = (row.get("name") or "").strip()
@@ -133,8 +135,16 @@ async def import_users(
             skipped += 1
             continue
 
-        if crud.get_user_by_employee_id(db, user_id):
-            skipped += 1
+        existing = crud.get_user_by_employee_id(db, user_id)
+        if existing:
+            normalized_name = jaconv.z2h(name, kana=True, ascii=False, digit=False)
+            if existing.name == normalized_name:
+                skipped += 1
+            else:
+                errors.append(
+                    f"ID {user_id} already exists with kana '{existing.name}' but CSV has '{normalized_name}'"
+                )
+                skipped += 1
             continue
 
         dept = (
@@ -158,4 +168,4 @@ async def import_users(
         crud.create_user(db, user_in)
         added += 1
 
-    return {"added": added, "skipped": skipped}
+    return {"added": added, "skipped": skipped, "errors": errors}
