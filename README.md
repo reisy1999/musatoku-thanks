@@ -219,4 +219,20 @@ user_id,name,display_name,department,email
 `display_name` 列がない場合は `name` の値がそのまま表示名として使用されます。サンプルファイル `backend/users_import_template.csv` も参考にしてください。
 CSVファイルは必ず **UTF-8 エンコーディング** で保存してください。その他のエンコード形式では文字化けが発生します。
 
------
+## 12. データベーススキーマの更新
+
+`users` テーブルに以下の3カラムが追加されました。
+
+- `appreciated_count` INTEGER NOT NULL DEFAULT 0
+- `expressed_count` INTEGER NOT NULL DEFAULT 0
+- `likes_received` INTEGER NOT NULL DEFAULT 0
+
+新規データベースを作成する場合は、アプリ起動時の `Base.metadata.create_all()` により自動的にこれらのカラムが含まれます。既存データベースを使用している場合は手動でカラムを追加してください。SQLite の例を以下に示します。
+
+```sql
+ALTER TABLE users ADD COLUMN appreciated_count INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE users ADD COLUMN expressed_count INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE users ADD COLUMN likes_received INTEGER NOT NULL DEFAULT 0;
+```
+
+他のデータベースを利用している場合も同様に `ALTER TABLE` コマンドを実行して追加してください。

@@ -78,6 +78,9 @@ class User(Base):
         default=lambda: datetime.now(timezone.utc),
         nullable=False,
     )
+    appreciated_count = Column(Integer, default=0, nullable=False)
+    expressed_count = Column(Integer, default=0, nullable=False)
+    likes_received = Column(Integer, default=0, nullable=False)
 
     department = relationship("Department", back_populates="users")
 
