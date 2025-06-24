@@ -60,6 +60,28 @@ def test_user_department_name():
         assert user_resp.json().get("department_name") == "テスト部署"
 
 
+def test_user_counts_returned():
+    """/users/me should include appreciation counters"""
+    with TestClient(app) as client:
+        token_resp = client.post(
+            "/token",
+            data={"username": "000000", "password": "pass"},
+        )
+        assert token_resp.status_code == 200
+        token = token_resp.json()["access_token"]
+
+        headers = {"Authorization": f"Bearer {token}"}
+        user_resp = client.get("/users/me", headers=headers)
+        assert user_resp.status_code == 200
+        data = user_resp.json()
+        assert "appreciated_count" in data
+        assert "expressed_count" in data
+        assert "likes_received" in data
+        assert data["appreciated_count"] >= 0
+        assert data["expressed_count"] >= 0
+        assert data["likes_received"] >= 0
+
+
 def test_post_mentions():
     """posts can mention users"""
     with TestClient(app) as client:

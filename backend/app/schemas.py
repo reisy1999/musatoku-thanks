@@ -85,6 +85,9 @@ class User(UserBase):
     department_name: Optional[str] = None
     is_admin: bool = False
     is_active: bool = True
+    appreciated_count: int = 0
+    expressed_count: int = 0
+    likes_received: int = 0
 
     class Config:
         from_attributes = True
@@ -110,6 +113,9 @@ class AdminUser(BaseModel):
     is_admin: bool = False
     is_active: bool = True
     is_logged_in: bool = False
+    appreciated_count: int = 0
+    expressed_count: int = 0
+    likes_received: int = 0
 
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 

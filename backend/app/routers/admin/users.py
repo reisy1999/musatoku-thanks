@@ -40,6 +40,9 @@ def list_users(
                 is_admin=u.is_admin,
                 is_active=u.is_active,
                 is_logged_in=logged_in,
+                appreciated_count=u.appreciated_count,
+                expressed_count=u.expressed_count,
+                likes_received=u.likes_received,
             )
         )
     return result

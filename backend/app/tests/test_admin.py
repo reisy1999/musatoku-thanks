@@ -241,3 +241,17 @@ def test_admin_list_users_logged_in_naive_timestamp():
         assert resp.status_code == 200
         users = resp.json()
         assert any(u["id"] == user_id and u["is_logged_in"] for u in users)
+
+
+def test_admin_users_include_counts():
+    """Admin users listing should include counter fields"""
+    with TestClient(app) as client:
+        token = _get_admin_token(client)
+        resp = client.get("/admin/users", headers={"Authorization": f"Bearer {token}"})
+        assert resp.status_code == 200
+        users = resp.json()
+        assert users
+        sample = users[0]
+        assert "appreciated_count" in sample
+        assert "expressed_count" in sample
+        assert "likes_received" in sample
