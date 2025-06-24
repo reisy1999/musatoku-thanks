@@ -101,9 +101,9 @@ uvicorn app.main:app --reload
 
 サービスが実行されたら、以下のURLでアプリケーションにアクセスできます。
 
-  * **フロントエンド (React/Vite):** [http://localhost:5173](https://www.google.com/search?q=http://localhost:5173)
+  * **フロントエンド (React/Vite):** [http://localhost:5173](http://localhost:5173)
       * これはReactシングルページアプリケーションを提供する開発サーバーです。
-  * **API ドキュメント (FastAPI Swagger UI):** [http://localhost:8000/docs](https://www.google.com/search?q=http://localhost:8000/docs)
+  * **API ドキュメント (FastAPI Swagger UI):** [http://localhost:8000/docs](http://localhost:8000/docs)
       * ブラウザから直接APIエンドポイントをテストし、理解するためのインタラクティブなドキュメントを提供します。
 
 ### デフォルトのテストユーザー
