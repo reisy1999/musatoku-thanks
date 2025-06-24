@@ -1,9 +1,13 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { configDefaults } from 'vitest/config'
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  test: {
+    environment: 'jsdom',
+  },
   server: {
     // ★★★ 計画書通り、プロキシ設定を実装します ★★★
     // これにより、開発時のCORSエラーを回避できます。
