@@ -17,7 +17,8 @@
     "plugin:@typescript-eslint/recommended",
     "plugin:react/recommended",
     "plugin:react-hooks/recommended",
-    "plugin:tailwindcss/recommended"
+    "plugin:tailwindcss/recommended",
+    "plugin:prettier/recommended"
   ],
   "plugins": [
     "react-refresh"
@@ -28,8 +29,7 @@
     }
   },
   "ignorePatterns": [
-    "dist",
-    ".eslintrc.cjs"
+    "dist"
   ],
   "rules": {
     "react-refresh/only-export-components": [
