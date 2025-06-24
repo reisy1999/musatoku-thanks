@@ -14,6 +14,7 @@
     * FastAPIアプリケーションのコードが含まれています。
     * バックエンドのDockerイメージをビルドするための `Dockerfile` が含まれています。
     * `requirements.txt` にはすべてのPythonの依存関係がリストされています。
+    * `assets/` はCSVテンプレートなどの静的ファイルを格納するためのディレクトリです。
 * `/frontend`
     * ViteとTypeScriptで構築されたReactクライアントアプリケーションが格納されています。
     * フロントエンドのDockerイメージをビルドするための `Dockerfile` が含まれています。
@@ -40,19 +41,20 @@
 
 **注:** 初回セットアップ時にDockerイメージのプルや依存関係のインストールを行うため、アクティブなインターネット接続が必要です。
 
-## 4. セットアップ / クイックスタート
+## 4. Getting Started
 
-アプリケーションを迅速に起動して実行するには、以下の手順に従ってください。
+アプリケーションを迅速に起動して実行するには、以下の手順に従ってください。ここでは Docker を利用した方法と、バックエンド・フロントエンドをローカルで個別に起動する方法の両方を紹介します。
 
 ### 環境変数
 
-ローカル設定を定義するために、サンプル `.env` ファイルをコピーします。
+ローカル設定を定義するために、以下のようにサンプル `.env` ファイルをコピーします。
 
 ```bash
 cp backend/.env.example backend/.env
-````
+cp frontend/.env.example frontend/.env
+```
 
-セキュリティ上の理由から `SECRET_KEY` を調整し（例えば、強力な新しいキーを生成してください）、`DATABASE_URL` をお好みのデータベース接続文字列に設定する必要があります。デフォルトの `sqlite:///./musatoku.db` は、`backend` ディレクトリ内のSQLiteデータベースファイルを使用します。
+バックエンドの `.env` には `SECRET_KEY` や `DATABASE_URL` を含めます。特に `SECRET_KEY` は必ず強力な文字列に置き換えてください。フロントエンドの `.env` では API のURL (`VITE_API_URL`) を設定できます。
 
 ### コンテナの起動
 
@@ -74,6 +76,26 @@ docker-compose up --build
 ```bash
 docker-compose down
 ```
+
+### ローカル開発 (Docker を使わない場合)
+
+バックエンドとフロントエンドをそれぞれローカル環境で起動することもできます。ターミナルを 2 つ開き、次のように実行してください。
+
+```bash
+# Frontend
+cd frontend
+npm install
+npm run dev
+
+# Backend (別ターミナル)
+cd backend
+python -m venv .venv
+source .venv/bin/activate  # Windows の場合: .venv\Scripts\activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload
+```
+
+これにより、フロントエンドは <http://localhost:5173>、バックエンドは <http://localhost:8000> で動作します。
 
 ### アプリケーションへのアクセス
 
@@ -155,6 +177,7 @@ uvicorn app.main:app --reload
 ## 6\. 環境変数
 
 `backend/.env.example` ファイルには、FastAPIバックエンドで使用される主要な環境変数がリストされています。
+`frontend/.env.example` も用意されており、フロントエンドからアクセスするAPIのURLを設定できます。
 
 ```makefile
 SECRET_KEY                # JWT署名キー。セキュリティ上極めて重要です。本番環境では強力でユニークなキーを生成してください。
@@ -216,7 +239,7 @@ pytest
 user_id,name,display_name,department,email
 ```
 
-`display_name` 列がない場合は `name` の値がそのまま表示名として使用されます。サンプルファイル `backend/users_import_template.csv` も参考にしてください。
+`display_name` 列がない場合は `name` の値がそのまま表示名として使用されます。サンプルファイル `backend/assets/users_import_template.csv` も参考にしてください。
 CSVファイルは必ず **UTF-8 エンコーディング** で保存してください。その他のエンコード形式では文字化けが発生します。
 
 ## 12. データベーススキーマの更新
