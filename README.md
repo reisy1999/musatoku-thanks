@@ -236,3 +236,15 @@ ALTER TABLE users ADD COLUMN likes_received INTEGER NOT NULL DEFAULT 0;
 ```
 
 他のデータベースを利用している場合も同様に `ALTER TABLE` コマンドを実行して追加してください。
+
+## 13. ユーザー統計の更新
+
+各ユーザーには以下の統計情報が記録されます。
+
+- **appreciated_count**: 他のユーザーからメンションされて感謝された回数。
+- **expressed_count**: 自分が投稿で感謝を表明した回数。
+- **likes_received**: 自分の投稿が「いいね」された累計数。
+
+投稿を作成すると、著者の `expressed_count` が1増加し、メンションされたユーザーの `appreciated_count` も1ずつ増加します。また投稿に「いいね」が付くと、その投稿の著者の `likes_received` が増え、いいねを取り消すと減少します。これらの統計は `/users/me` API や管理者向けユーザー一覧で確認できます。
+
+既存デプロイメントでこの機能を利用するには、前節の `ALTER TABLE` コマンドを実行して3カラムを追加してください。
