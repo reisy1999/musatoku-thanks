@@ -10,6 +10,9 @@ interface AdminUser {
   is_admin: boolean;
   is_active: boolean;
   is_logged_in: boolean;
+  appreciated_count: number;
+  expressed_count: number;
+  likes_received: number;
 }
 
 const UserAdminPanel: React.FC = () => {
@@ -178,6 +181,15 @@ const UserAdminPanel: React.FC = () => {
                     Department
                   </th>
                   <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Appreciated Count
+                  </th>
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Expressed Count
+                  </th>
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Likes Received
+                  </th>
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Role
                   </th>
                   <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -204,12 +216,15 @@ const UserAdminPanel: React.FC = () => {
                     <td className="px-3 py-2 whitespace-nowrap">
                       {u.kana_name}
                     </td>
-                    <td className="px-3 py-2 whitespace-nowrap">
-                      {u.department_name ?? ""}
-                    </td>
-                    <td className="px-3 py-2 whitespace-nowrap">
-                      {u.is_admin ? "管理者" : "一般"}
-                    </td>
+                  <td className="px-3 py-2 whitespace-nowrap">
+                    {u.department_name ?? ""}
+                  </td>
+                  <td className="px-3 py-2 whitespace-nowrap">{u.appreciated_count}</td>
+                  <td className="px-3 py-2 whitespace-nowrap">{u.expressed_count}</td>
+                  <td className="px-3 py-2 whitespace-nowrap">{u.likes_received}</td>
+                  <td className="px-3 py-2 whitespace-nowrap">
+                    {u.is_admin ? "管理者" : "一般"}
+                  </td>
                     <td className="px-3 py-2 whitespace-nowrap">
                       {u.is_active ? "在職" : "退職"}
                     </td>

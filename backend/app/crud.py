@@ -63,6 +63,21 @@ def search_users(db: Session, query: str, limit: int = 10):
     )
 
 
+def get_top_users(db: Session, field: str, limit: int = 10):
+    """Return top users ordered by given counter field."""
+    column = getattr(models.User, field, None)
+    if column is None:
+        raise ValueError("Invalid field")
+    return (
+        db.query(models.User)
+        .options(joinedload(models.User.department))
+        .filter(models.User.is_active == True)
+        .order_by(column.desc())
+        .limit(limit)
+        .all()
+    )
+
+
 def deactivate_user(db: Session, user_id: int) -> bool:
     """Soft delete a user by setting is_active to False."""
     user = db.query(models.User).filter(models.User.id == user_id).first()
