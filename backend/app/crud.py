@@ -316,6 +316,8 @@ def like_post(db: Session, post_id: int, user_id: int) -> bool:
     if user in post.likers:
         return True
     post.likers.append(user)
+    if post.author:
+        post.author.likes_received += 1
     db.commit()
     return True
 
@@ -328,6 +330,8 @@ def unlike_post(db: Session, post_id: int, user_id: int) -> bool:
     if user not in post.likers:
         return True
     post.likers.remove(user)
+    if post.author and post.author.likes_received > 0:
+        post.author.likes_received -= 1
     db.commit()
     return True
 
