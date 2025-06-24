@@ -48,6 +48,48 @@ def list_users(
     return result
 
 
+@router.get("/top/{counter}", response_model=list[schemas.AdminUser])
+def top_users(
+    counter: str,
+    limit: int = 10,
+    db: Session = Depends(get_db),
+    _: schemas.User = Depends(require_admin),
+):
+    """Return top users ranked by a specific counter."""
+    field_map = {
+        "appreciated": "appreciated_count",
+        "expressed": "expressed_count",
+        "likes": "likes_received",
+    }
+    field = field_map.get(counter)
+    if not field:
+        raise HTTPException(status_code=400, detail="Invalid counter")
+    users = crud.get_top_users(db, field, limit)
+    now = datetime.now(timezone.utc)
+    result: list[schemas.AdminUser] = []
+    for u in users:
+        logged_in = False
+        if u.last_seen:
+            last_seen = normalize_to_utc(u.last_seen)
+            logged_in = now - last_seen <= timedelta(minutes=5)
+        result.append(
+            schemas.AdminUser(
+                id=u.id,
+                employee_id=u.employee_id,
+                display_name=u.display_name,
+                kana_name=u.name,
+                department_name=u.department_name,
+                is_admin=u.is_admin,
+                is_active=u.is_active,
+                is_logged_in=logged_in,
+                appreciated_count=u.appreciated_count,
+                expressed_count=u.expressed_count,
+                likes_received=u.likes_received,
+            )
+        )
+    return result
+
+
 @router.get("/export")
 def export_users(
     db: Session = Depends(get_db),
