@@ -188,6 +188,13 @@ def create_post(db: Session, post: schemas.PostCreate, user_id: int):
             db.query(models.User).filter(models.User.id.in_(mentioned_ids)).all()
         )
         db_post.mentions.extend(mentioned_users)
+        for u in mentioned_users:
+            u.appreciated_count += 1
+
+    author = db.query(models.User).filter(models.User.id == user_id).first()
+    if author:
+        author.expressed_count += 1
+
     db.add(db_post)
     db.commit()
     db.refresh(db_post)
